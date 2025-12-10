@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 등록 - 축의금 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 왼쪽 사이드바 */
+        .sidebar {
+            width: 16.66%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-btn {
+            padding: 18px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .sidebar-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 헤더 */
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn {
+            padding: 10px 24px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* 컨텐츠 영역 */
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .page-description {
+            font-size: 15px;
+            color: #666;
+        }
+
+        /* 폼 스타일 */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #ff4757;
+            margin-left: 4px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-select {
+            cursor: pointer;
+            background: white;
+        }
+
+        /* 라디오 버튼 그룹 */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            font-size: 15px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        /* 버튼 그룹 */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        /* 성공 메시지 */
+        .success-message {
+            background: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message.show {
+            display: flex;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 왼쪽 사이드바 -->
+    <div class="sidebar">
+        <button class="sidebar-btn active">이벤트 등록</button>
+        <button class="sidebar-btn" onclick="goToSearch()">이벤트 조회</button>
+        <button class="sidebar-btn" onclick="goToAnalytics()">분석 및 통계</button>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="logo">축의금 관리 시스템</div>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+
+        <!-- 컨텐츠 -->
+        <div class="content">
+            <div class="content-card">
+                <div class="page-header">
+                    <div class="page-title">이벤트 등록</div>
+                    <div class="page-description">경조사 이벤트 정보를 등록하고 축의금을 관리하세요</div>
+                </div>
+
+                <div class="success-message" id="successMessage">
+                    ✓ 이벤트가 성공적으로 등록되었습니다!
+                </div>
+
+                <form id="eventForm">
+                    <div class="form-grid">
+                        <!-- 지인 이름 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                지인 이름<span class="required">*</span>
+                            </label>
+                            <input type="text" class="form-input" id="friendName" placeholder="이름을 입력하세요" required>
+                        </div>
+
+                        <!-- 관계 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                관계<span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="relationship" required>
+                                <option value="">선택하세요</option>
+                                <option value="가족">가족</option>
+                                <option value="친척">친척</option>
+                                <option value="친구">친구</option>
+                                <option value="직장동료">직장동료</option>
+                                <option value="선후배">선후배</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+
+                        <!-- 상세 그룹 -->
+                        <div class="form-group">
+                            <label class="form-label">상세 그룹</label>
+                            <input type="text" class="form-input" id="detailGroup" placeholder="예: 대학친구, 부서팀원 등">
+                        </div>
+
+                        <!-- 연락처 -->
+                        <div class="form-group">
+                            <label class="form-label">연락처</label>
+                            <input type="tel" class="form-input" id="phone" placeholder="010-0000-0000">
+                        </div>
+
+                        <!-- 경조사 종류 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                경조사 종류<span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="eventType" required>
+                                <option value="">선택하세요</option>
+                                <option value="결혼">결혼</option>
+                                <option value="장례">장례</option>
+                                <option value="돌잔치">돌잔치</option>
+                                <option value="회갑">회갑</option>
+                                <option value="개업">개업</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+
+                        <!-- 행사명 -->
+                        <div class="form-group">
+                            <label class="form-label">행사명</label>
+                            <input type="text" class="form-input" id="eventName" placeholder="예: 홍길동♥김영희 결혼식">
+                        </div>
+
+                        <!-- 행사 날짜 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                행사 날짜<span class="required">*</span>
+                            </label>
+                            <input type="date" class="form-input" id="eventDate" required>
+                        </div>
+
+                        <!-- 행사 시간 -->
+                        <div class="form-group">
+                            <label class="form-label">행사 시간</label>
+                            <input type="time" class="form-input" id="eventTime">
+                        </div>
+
+                        <!-- 장소 -->
+                        <div class="form-group full-width">
+                            <label class="form-label">장소</label>
+                            <input type="text" class="form-input" id="location" placeholder="예: 강남구 역삼동 ○○웨딩홀">
+                        </div>
+
+                        <!-- 주최자 여부 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                주최자 여부<span class="required">*</span>
+                            </label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="hostYes" name="isHost" value="yes" required>
+                                    <label for="hostYes">주최자</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="hostNo" name="isHost" value="no" checked>
+                                    <label for="hostNo">참석자</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 금액 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                금액<span class="required">*</span>
+                            </label>
+                            <input type="number" class="form-input" id="amount" placeholder="50000" min="0" step="10000" required>
+                        </div>
+
+                        <!-- 입출금 구분 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                입출금 구분<span class="required">*</span>
+                            </label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="income" name="transactionType" value="income" required>
+                                    <label for="income">입금 (받음)</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="expense" name="transactionType" value="expense" checked>
+                                    <label for="expense">출금 (보냄)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 지급 방법 -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                지급 방법<span class="required">*</span>
+                            </label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="">선택하세요</option>
+                                <option value="현금">현금</option>
+                                <option value="계좌이체">계좌이체</option>
+                                <option value="카드">카드</option>
+                                <option value="기타">기타</option>
+                            </select>
+                        </div>
+
+                        <!-- 메모 -->
+                        <div class="form-group full-width">
+                            <label class="form-label">메모</label>
+                            <textarea class="form-textarea" id="memo" placeholder="추가 메모사항을 입력하세요"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">초기화</button>
+                        <button type="submit" class="btn btn-primary">등록하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 로그아웃
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            // 실제로는 세션 삭제 등의 처리 후 로그인 페이지로 이동
+            alert('로그아웃 되었습니다.');
+            window.location.href = 'login.html';
+        }
+    }
+
+    // 페이지 이동
+    function goToSearch() {
+        window.location.href = 'event-search.html';
+    }
+
+    function goToAnalytics() {
+        window.location.href = 'analytics.html';
+    }
+
+    // 폼 초기화
+    function resetForm() {
+        if (confirm('입력한 내용을 모두 초기화하시겠습니까?')) {
+            document.getElementById('eventForm').reset();
+        }
+    }
+
+    // 폼 제출
+    document.getElementById('eventForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 폼 데이터 수집
+        const formData = {
+            friendName: document.getElementById('friendName').value,
+            relationship: document.getElementById('relationship').value,
+            detailGroup: document.getElementById('detailGroup').value,
+            phone: document.getElementById('phone').value,
+            eventType: document.getElementById('eventType').value,
+            eventName: document.getElementById('eventName').value,
+            eventDate: document.getElementById('eventDate').value,
+            eventTime: document.getElementById('eventTime').value,
+            location: document.getElementById('location').value,
+            isHost: document.querySelector('input[name="isHost"]:checked').value,
+            amount: document.getElementById('amount').value,
+            transactionType: document.querySelector('input[name="transactionType"]:checked').value,
+            paymentMethod: document.getElementById('paymentMethod').value,
+            memo: document.getElementById('memo').value
+        };
+
+        console.log('등록할 이벤트 데이터:', formData);
+
+        // 백엔드 API 호출
+        // const response = await fetch('/api/events', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify(formData)
+        // });
+
+        // 성공 메시지 표시
+        const successMessage = document.getElementById('successMessage');
+        successMessage.classList.add('show');
+
+        // 폼 초기화
+        document.getElementById('eventForm').reset();
+
+        // 3초 후 메시지 숨김
+        setTimeout(() => {
+            successMessage.classList.remove('show');
+        }, 3000);
+
+        // 스크롤을 맨 위로
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // 금액 입력 시 천 단위 콤마 표시 (선택사항)
+    document.getElementById('amount').addEventListener('blur', function() {
+        if (this.value) {
+            const value = parseInt(this.value.replace(/,/g, ''));
+            if (!isNaN(value)) {
+                this.value = value;
+            }
+        }
+    });
+</script>
+</body>
+</html>

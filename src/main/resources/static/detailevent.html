@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 상세 - 축의금 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 왼쪽 사이드바 */
+        .sidebar {
+            width: 16.66%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-btn {
+            padding: 18px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .sidebar-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* 메인 컨텐츠 영역 */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 헤더 */
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn {
+            padding: 10px 24px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        /* 컨텐츠 영역 */
+        .content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* 주요 정보 섹션 */
+        .main-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 40px;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .event-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .main-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .transaction-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        .income-badge {
+            background: #4caf50;
+            color: white;
+        }
+
+        .expense-badge {
+            background: #ff4757;
+            color: white;
+        }
+
+        /* 상세 정보 섹션 */
+        .detail-info {
+            background: #f9f9f9;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: #999;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .memo-section {
+            grid-column: 1 / -1;
+        }
+
+        .memo-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            min-height: 80px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* 액션 버튼 */
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-delete {
+            background: white;
+            color: #ff4757;
+            border: 2px solid #ff4757;
+        }
+
+        .btn-delete:hover {
+            background: #ff4757;
+            color: white;
+        }
+
+        /* 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .modal-btn-confirm {
+            background: #ff4757;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #e03e4a;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 왼쪽 사이드바 -->
+    <div class="sidebar">
+        <button class="sidebar-btn" onclick="goToRegister()">이벤트 등록</button>
+        <button class="sidebar-btn active" onclick="goToSearch()">이벤트 조회</button>
+        <button class="sidebar-btn" onclick="goToAnalytics()">분석 및 통계</button>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="main-content">
+        <!-- 헤더 -->
+        <div class="header">
+            <div class="logo">축의금 관리 시스템</div>
+            <button class="logout-btn" onclick="logout()">로그아웃</button>
+        </div>
+
+        <!-- 컨텐츠 -->
+        <div class="content">
+            <div class="content-card">
+                <button class="back-btn" onclick="goBack()">
+                    ← 목록으로 돌아가기
+                </button>
+
+                <!-- 주요 정보 -->
+                <div class="main-info">
+                    <div class="event-title" id="eventTitle">김철수♥이영희 결혼식</div>
+                    <div class="main-info-grid">
+                        <div class="info-item">
+                            <div class="info-label">경조사 종류</div>
+                            <div class="info-value" id="eventType">결혼</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">주최자 이름</div>
+                            <div class="info-value" id="hostName">김철수</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">입출금 구분</div>
+                            <div class="info-value">
+                                <span class="transaction-badge expense-badge" id="transactionType">출금</span>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">행사 날짜 및 시간</div>
+                            <div class="info-value" id="eventDateTime">2024.12.20 14:00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 상세 정보 -->
+                <div class="detail-info">
+                    <div class="section-title">상세 정보</div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">지인 이름</div>
+                            <div class="detail-value" id="friendName">김철수</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">관계</div>
+                            <div class="detail-value" id="relationship">친구</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">금액</div>
+                            <div class="detail-value" id="amount">100,000원</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">지급 방법</div>
+                            <div class="detail-value" id="paymentMethod">현금</div>
+                        </div>
+                        <div class="detail-item memo-section">
+                            <div class="detail-label">메모</div>
+                            <div class="memo-content" id="memo">대학 동기, 학생회에서 같이 활동함</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 액션 버튼 -->
+                <div class="action-buttons">
+                    <button class="btn btn-delete" onclick="showDeleteModal()">삭제</button>
+                    <button class="btn btn-edit" onclick="editEvent()">수정</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal" id="deleteModal">
+    <div class="modal-content">
+        <div class="modal-title">이벤트 삭제</div>
+        <div class="modal-text">
+            이 이벤트를 삭제하시겠습니까?<br>
+            삭제된 데이터는 복구할 수 없습니다.
+        </div>
+        <div class="modal-buttons">
+            <button class="modal-btn modal-btn-cancel" onclick="closeDeleteModal()">취소</button>
+            <button class="modal-btn modal-btn-confirm" onclick="deleteEvent()">삭제</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL에서 이벤트 ID 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id');
+
+
+    // 페이지 로드 시 데이터 표시
+    function loadEventData() {
+        const event = mockEventData[eventId];
+
+        if (!event) {
+            alert('이벤트를 찾을 수 없습니다.');
+            goBack();
+            return;
+        }
+
+        // 주요 정보 표시
+        document.getElementById('eventTitle').textContent = event.eventName || `${event.friendName} ${event.eventType}`;
+        document.getElementById('eventType').textContent = event.eventType;
+        document.getElementById('hostName').textContent = event.hostName;
+        document.getElementById('eventDateTime').textContent = formatDateTime(event.eventDate, event.eventTime);
+
+        // 입출금 구분
+        const transactionBadge = document.getElementById('transactionType');
+        if (event.transactionType === 'income') {
+            transactionBadge.textContent = '입금';
+            transactionBadge.className = 'transaction-badge income-badge';
+        } else {
+            transactionBadge.textContent = '출금';
+            transactionBadge.className = 'transaction-badge expense-badge';
+        }
+
+        // 상세 정보 표시
+        document.getElementById('friendName').textContent = event.friendName;
+        document.getElementById('relationship').textContent = event.relationship;
+        document.getElementById('amount').textContent = formatAmount(event.amount) + '원';
+        document.getElementById('paymentMethod').textContent = event.paymentMethod;
+        document.getElementById('memo').textContent = event.memo || '메모가 없습니다.';
+    }
+
+    // 날짜 시간 포맷팅
+    function formatDateTime(date, time) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return time ? `${year}.${month}.${day} ${time}` : `${year}.${month}.${day}`;
+    }
+
+    // 금액 포맷팅
+    function formatAmount(amount) {
+        return amount.toLocaleString();
+    }
+
+    // 삭제 모달 표시
+    function showDeleteModal() {
+        document.getElementById('deleteModal').classList.add('show');
+    }
+
+    // 삭제 모달 닫기
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+
+    // 이벤트 삭제
+    function deleteEvent() {
+        // 실제로는 백엔드 API 호출
+        // await fetch(`/api/events/${eventId}`, { method: 'DELETE' });
+
+        console.log('이벤트 삭제:', eventId);
+        alert('이벤트가 삭제되었습니다.');
+        window.location.href = 'event-search.html';
+    }
+
+    // 이벤트 수정
+    function editEvent() {
+        // 수정 페이지로 이동 (등록 페이지를 수정 모드로 재사용 가능)
+        window.location.href = `event-edit.html?id=${eventId}`;
+    }
+
+    // 목록으로 돌아가기
+    function goBack() {
+        window.location.href = 'event-search.html';
+    }
+
+    // 페이지 이동
+    function goToRegister() {
+        window.location.href = 'event-register.html';
+    }
+
+    function goToSearch() {
+        window.location.href = 'event-search.html';
+    }
+
+    function goToAnalytics() {
+        window.location.href = 'analytics.html';
+    }
+
+    function logout() {
+        if (confirm('로그아웃 하시겠습니까?')) {
+            alert('로그아웃 되었습니다.');
+            window.location.href = 'login.html';
+        }
+    }
+
+    // 페이지 로드 시 데이터 로드
+    loadEventData();
+</script>
+</body>
+</html>
