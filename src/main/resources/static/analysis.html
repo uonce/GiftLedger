@@ -1,10 +1,861 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>축의금 관리 시스템 - 나의 분석</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 16.66%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar-btn {
+            padding: 18px 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .sidebar-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-btn {
+            padding: 10px 24px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .auth-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .dashboard {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            margin-bottom: 30px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* 탭 네비게이션 */
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px 10px 0 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        /* 탭 컨텐츠 */
+        .tab-content {
+            display: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 공통 스타일 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box.primary {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        }
+
+        .stat-box.success {
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+        }
+
+        .stat-box.warning {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+        }
+
+        .stat-box.danger {
+            background: linear-gradient(135deg, #ff7675 0%, #d63031 100%);
+        }
+
+        .stat-box.info {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-detail {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 리스트 스타일 */
+        .list-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .list-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item-info {
+            flex: 1;
+        }
+
+        .list-item-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .list-item-detail {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .list-item-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* 차트 컨테이너 */
+        .chart-container {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 300px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        /* 로딩 및 에러 */
+        .loading {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .error-message {
+            color: #ff4757;
+            text-align: center;
+            padding: 20px;
+            font-size: 16px;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 16px;
+        }
+
+        /* 경고 배지 */
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-danger {
+            background: #ff7675;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #fdcb6e;
+            color: #333;
+        }
+
+        .badge-success {
+            background: #00b894;
+            color: white;
+        }
+
+        /* 섹션 구분 */
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
+    <div class="sidebar">
+        <button class="sidebar-btn" onclick="goToPage('index.html')">전체 통계</button>
+        <button class="sidebar-btn active" onclick="goToPage('analysis.html')">나의 분석</button>
+        <button class="sidebar-btn" onclick="goToPage('event-register.html')">이벤트 등록</button>
+        <button class="sidebar-btn" onclick="goToPage('event-search.html')">이벤트 조회</button>
+    </div>
 
+    <div class="main-content">
+        <div class="header">
+            <div class="logo">축의금 관리 시스템</div>
+            <div class="auth-buttons" id="authButtons">
+                <!-- 로그인 상태에 따라 동적으로 변경 -->
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <div class="card-title">나의 축의금 분석</div>
+
+                    <!-- 탭 네비게이션 -->
+                    <div class="tab-navigation">
+                        <button class="tab-btn active" onclick="changeTab('dashboard')">📊 종합 대시보드</button>
+                        <button class="tab-btn" onclick="changeTab('pattern')">📈 지출 패턴</button>
+                        <button class="tab-btn" onclick="changeTab('relation')">👥 지인 분석</button>
+                        <button class="tab-btn" onclick="changeTab('recovery')">💰 회수율</button>
+                    </div>
+                </div>
+
+                <!-- 탭 1: 종합 대시보드 -->
+                <div id="tab-dashboard" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-box primary">
+                            <div class="stat-label">총 준 금액</div>
+                            <div class="stat-value" id="totalGive">0원</div>
+                        </div>
+                        <div class="stat-box success">
+                            <div class="stat-label">총 받은 금액</div>
+                            <div class="stat-value" id="totalTake">0원</div>
+                        </div>
+                        <div class="stat-box warning">
+                            <div class="stat-label">잔액</div>
+                            <div class="stat-value" id="balance">0원</div>
+                        </div>
+                        <div class="stat-box info">
+                            <div class="stat-label">회수율</div>
+                            <div class="stat-value" id="recoveryRate">0%</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">전년 대비 변화</div>
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">전년 대비 지출</div>
+                                <div class="stat-value" id="yearChange">-</div>
+                                <div class="stat-detail" id="yearChangeDetail">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">최근 이벤트</div>
+                        <div class="list-container" id="recentEvents">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 2: 지출 패턴 분석 -->
+                <div id="tab-pattern" class="tab-content">
+                    <div class="section">
+                        <div class="section-title">월별 지출 그래프</div>
+                        <div class="chart-container" id="monthlyChart">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">요일별 지출 그래프</div>
+                        <div class="chart-container" id="weekdayChart">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">이벤트별 분포</div>
+                        <div class="stats-grid" id="eventDistribution">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 3: 지인 분석 -->
+                <div id="tab-relation" class="tab-content">
+                    <div class="section">
+                        <div class="section-title">TOP 5 지인</div>
+                        <div class="list-container" id="topRelations">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">지인별 회수율</div>
+                        <div class="list-container" id="relationRecovery">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭 4: 회수율 대시보드 -->
+                <div id="tab-recovery" class="tab-content">
+                    <div class="stats-grid">
+                        <div class="stat-box success">
+                            <div class="stat-label">전체 회수율</div>
+                            <div class="stat-value" id="totalRecovery">0%</div>
+                        </div>
+                        <div class="stat-box danger">
+                            <div class="stat-label">미회수 금액</div>
+                            <div class="stat-value" id="unrecovered">0원</div>
+                        </div>
+                        <div class="stat-box warning">
+                            <div class="stat-label">예상 회수 금액</div>
+                            <div class="stat-value" id="expectedRecovery">0원</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">미회수 지인 리스트</div>
+                        <div class="list-container" id="unrecoveredList">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">장기 미회수 경고</div>
+                        <div class="list-container" id="longTermWarning">
+                            <div class="loading-container">
+                                <div class="loading"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8080';
+    let currentTab = 'dashboard';
+
+    // 페이지 로드 시 실행
+    window.onload = function() {
+        checkLoginStatus();
+        loadDashboardData();
+    };
+
+    // 로그인 상태 확인
+    function checkLoginStatus() {
+        const token = localStorage.getItem('accessToken');
+        console.log('현재 토큰:', token);
+        const authButtons = document.getElementById('authButtons');
+
+        if (!token) {
+            // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+            alert('로그인이 필요한 서비스입니다.');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // 로그인 상태 → 로그아웃 버튼만 보여주기
+        authButtons.innerHTML = `
+            <button class="auth-btn" onclick="logout()">로그아웃</button>
+        `;
+    }
+
+    // 로그아웃
+    function logout() {
+        localStorage.removeItem('accessToken');
+        alert('로그아웃 되었습니다.');
+        window.location.href = 'index.html';
+    }
+
+    // 탭 변경
+    function changeTab(tabName) {
+        currentTab = tabName;
+
+        // 모든 탭 버튼과 컨텐츠 비활성화
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // 선택된 탭 활성화
+        event.target.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+
+        // 해당 탭 데이터 로드
+        loadTabData(tabName);
+    }
+
+    // 탭별 데이터 로드
+    function loadTabData(tabName) {
+        switch(tabName) {
+            case 'dashboard':
+                loadDashboardData();
+                break;
+            case 'pattern':
+                loadPatternData();
+                break;
+            case 'relation':
+                loadRelationData();
+                break;
+            case 'recovery':
+                loadRecoveryData();
+                break;
+        }
+    }
+
+    // 1. 종합 대시보드 데이터 로드
+    async function loadDashboardData() {
+        const token = localStorage.getItem('accessToken');
+
+        try {
+            // API 호출 예시 (실제 API 엔드포인트에 맞게 수정 필요)
+            const response = await fetch(`${API_BASE_URL}/api/my-statistics/dashboard`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch dashboard data');
+            }
+
+            const data = await response.json();
+
+            // 데이터 표시
+            document.getElementById('totalGive').textContent = data.totalGive.toLocaleString() + '원';
+            document.getElementById('totalTake').textContent = data.totalTake.toLocaleString() + '원';
+            document.getElementById('balance').textContent = (data.totalTake - data.totalGive).toLocaleString() + '원';
+            document.getElementById('recoveryRate').textContent = data.recoveryRate + '%';
+
+            // 전년 대비 변화
+            const changePercent = data.yearChangePercent > 0 ? '+' + data.yearChangePercent : data.yearChangePercent;
+            document.getElementById('yearChange').textContent = changePercent + '%';
+            document.getElementById('yearChangeDetail').textContent = data.yearChangeAmount.toLocaleString() + '원';
+
+            // 최근 이벤트
+            displayRecentEvents(data.recentEvents);
+
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+            // 임시 데모 데이터 표시
+            displayDemoDashboard();
+        }
+    }
+
+    // 임시 데모 데이터 표시
+    function displayDemoDashboard() {
+        document.getElementById('totalGive').textContent = '1,500,000원';
+        document.getElementById('totalTake').textContent = '1,200,000원';
+        document.getElementById('balance').textContent = '-300,000원';
+        document.getElementById('recoveryRate').textContent = '80%';
+        document.getElementById('yearChange').textContent = '+15%';
+        document.getElementById('yearChangeDetail').textContent = '+200,000원';
+
+        // 최근 이벤트 데모 데이터
+        const demoEvents = [
+            { name: '김철수', eventType: '결혼식', amount: 100000, date: '2024-12-10', type: 'GIVE' },
+            { name: '이영희', eventType: '생일', amount: 50000, date: '2024-12-08', type: 'TAKE' },
+            { name: '박민수', eventType: '장례식', amount: 200000, date: '2024-12-05', type: 'GIVE' },
+            { name: '최지은', eventType: '결혼식', amount: 150000, date: '2024-12-03', type: 'TAKE' },
+            { name: '정대한', eventType: '생일', amount: 30000, date: '2024-12-01', type: 'GIVE' }
+        ];
+        displayRecentEvents(demoEvents);
+    }
+
+    // 최근 이벤트 표시
+    function displayRecentEvents(events) {
+        const container = document.getElementById('recentEvents');
+
+        if (!events || events.length === 0) {
+            container.innerHTML = '<div class="no-data">최근 이벤트가 없습니다.</div>';
+            return;
+        }
+
+        let html = '';
+        events.forEach(event => {
+            const typeText = event.type === 'GIVE' ? '지출' : '수입';
+            const typeColor = event.type === 'GIVE' ? '#ff7675' : '#00b894';
+            html += `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-name">${event.name}</div>
+                        <div class="list-item-detail">${event.eventType} · ${event.date} · ${typeText}</div>
+                    </div>
+                    <div class="list-item-value" style="color: ${typeColor}">
+                        ${event.amount.toLocaleString()}원
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    // 2. 지출 패턴 데이터 로드
+    async function loadPatternData() {
+        // TODO: API 연동
+        displayDemoPattern();
+    }
+
+    function displayDemoPattern() {
+        // 월별 차트
+        document.getElementById('monthlyChart').innerHTML = `
+            <div class="chart-title">월별 지출 추이</div>
+            <div class="no-data">차트 데이터를 준비 중입니다.</div>
+        `;
+
+        // 요일별 차트
+        document.getElementById('weekdayChart').innerHTML = `
+            <div class="chart-title">요일별 지출 패턴</div>
+            <div class="no-data">차트 데이터를 준비 중입니다.</div>
+        `;
+
+        // 이벤트별 분포
+        const eventTypes = [
+            { type: '결혼식', count: 15, amount: 1500000 },
+            { type: '장례식', count: 8, amount: 800000 },
+            { type: '생일', count: 12, amount: 360000 },
+            { type: '기타', count: 5, amount: 250000 }
+        ];
+
+        let html = '';
+        eventTypes.forEach(event => {
+            html += `
+                <div class="stat-box">
+                    <div class="stat-label">${event.type}</div>
+                    <div class="stat-value">${event.count}건</div>
+                    <div class="stat-detail">${event.amount.toLocaleString()}원</div>
+                </div>
+            `;
+        });
+        document.getElementById('eventDistribution').innerHTML = html;
+    }
+
+    // 3. 지인 분석 데이터 로드
+    async function loadRelationData() {
+        // TODO: API 연동
+        displayDemoRelation();
+    }
+
+    function displayDemoRelation() {
+        // TOP 5 지인
+        const topRelations = [
+            { name: '김철수', totalAmount: 500000, eventCount: 5, avgAmount: 100000 },
+            { name: '이영희', totalAmount: 400000, eventCount: 4, avgAmount: 100000 },
+            { name: '박민수', totalAmount: 350000, eventCount: 3, avgAmount: 116667 },
+            { name: '최지은', totalAmount: 300000, eventCount: 3, avgAmount: 100000 },
+            { name: '정대한', totalAmount: 250000, eventCount: 2, avgAmount: 125000 }
+        ];
+
+        let html = '';
+        topRelations.forEach((rel, index) => {
+            html += `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-name">${index + 1}. ${rel.name}</div>
+                        <div class="list-item-detail">${rel.eventCount}건 · 평균 ${rel.avgAmount.toLocaleString()}원</div>
+                    </div>
+                    <div class="list-item-value">${rel.totalAmount.toLocaleString()}원</div>
+                </div>
+            `;
+        });
+        document.getElementById('topRelations').innerHTML = html;
+
+        // 지인별 회수율
+        const recoveryData = [
+            { name: '김철수', give: 300000, take: 250000, rate: 83 },
+            { name: '이영희', give: 200000, take: 200000, rate: 100 },
+            { name: '박민수', give: 150000, take: 100000, rate: 67 },
+            { name: '최지은', give: 100000, take: 0, rate: 0 }
+        ];
+
+        html = '';
+        recoveryData.forEach(rel => {
+            const badgeClass = rel.rate >= 80 ? 'badge-success' : rel.rate >= 50 ? 'badge-warning' : 'badge-danger';
+            html += `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-name">${rel.name} <span class="badge ${badgeClass}">${rel.rate}%</span></div>
+                        <div class="list-item-detail">준 금액: ${rel.give.toLocaleString()}원 / 받은 금액: ${rel.take.toLocaleString()}원</div>
+                    </div>
+                </div>
+            `;
+        });
+        document.getElementById('relationRecovery').innerHTML = html;
+    }
+
+    // 4. 회수율 데이터 로드
+    async function loadRecoveryData() {
+        // TODO: API 연동
+        displayDemoRecovery();
+    }
+
+    function displayDemoRecovery() {
+        document.getElementById('totalRecovery').textContent = '75%';
+        document.getElementById('unrecovered').textContent = '500,000원';
+        document.getElementById('expectedRecovery').textContent = '300,000원';
+
+        // 미회수 지인 리스트
+        const unrecoveredList = [
+            { name: '최지은', amount: 200000, date: '2024-06-15', days: 180 },
+            { name: '강민호', amount: 150000, date: '2024-08-20', days: 113 },
+            { name: '윤서아', amount: 100000, date: '2024-10-01', days: 71 },
+            { name: '임동주', amount: 50000, date: '2024-11-10', days: 31 }
+        ];
+
+        let html = '';
+        unrecoveredList.forEach(rel => {
+            const badgeClass = rel.days >= 180 ? 'badge-danger' : rel.days >= 90 ? 'badge-warning' : '';
+            html += `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-name">
+                            ${rel.name}
+                            ${badgeClass ? `<span class="badge ${badgeClass}">${rel.days}일 경과</span>` : ''}
+                        </div>
+                        <div class="list-item-detail">${rel.date} 지출</div>
+                    </div>
+                    <div class="list-item-value">${rel.amount.toLocaleString()}원</div>
+                </div>
+            `;
+        });
+        document.getElementById('unrecoveredList').innerHTML = html;
+
+        // 장기 미회수 경고
+        const longTermList = unrecoveredList.filter(rel => rel.days >= 180);
+
+        if (longTermList.length === 0) {
+            document.getElementById('longTermWarning').innerHTML = '<div class="no-data">장기 미회수 건이 없습니다.</div>';
+        } else {
+            html = '';
+            longTermList.forEach(rel => {
+                html += `
+                    <div class="list-item">
+                        <div class="list-item-info">
+                            <div class="list-item-name">${rel.name} <span class="badge badge-danger">경고</span></div>
+                            <div class="list-item-detail">${rel.days}일 동안 미회수 (${rel.date})</div>
+                        </div>
+                        <div class="list-item-value">${rel.amount.toLocaleString()}원</div>
+                    </div>
+                `;
+            });
+            document.getElementById('longTermWarning').innerHTML = html;
+        }
+    }
+
+    // 페이지 이동
+    function goToPage(page) {
+        window.location.href = page;
+    }
+</script>
 </body>
 </html>

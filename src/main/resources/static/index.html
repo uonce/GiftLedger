@@ -256,7 +256,7 @@
 <body>
 <div class="container">
     <div class="sidebar">
-        <button class="sidebar-btn" onclick="goToPage('.html')">분석 및 통계</button>
+        <button class="sidebar-btn" onclick="goToPage('analysis.html')">분석 및 통계</button>
         <button class="sidebar-btn" onclick="goToPage('event-register.html')">이벤트 등록</button>
         <button class="sidebar-btn" onclick="goToPage('event-search.html')">이벤트 조회</button>
     </div>
@@ -341,6 +341,7 @@
 
     // 로그인 상태 확인
     function checkLoginStatus() {
+        console.log('index.html 토큰:', localStorage.getItem('accessToken'));
         const token = localStorage.getItem('accessToken');
         const authButtons = document.getElementById('authButtons');
 
