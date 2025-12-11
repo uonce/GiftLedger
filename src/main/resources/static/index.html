@@ -22,7 +22,6 @@
             height: 100vh;
         }
 
-        /* 왼쪽 사이드바 */
         .sidebar {
             width: 16.66%;
             background: rgba(255, 255, 255, 0.95);
@@ -57,14 +56,12 @@
             color: white;
         }
 
-        /* 메인 컨텐츠 영역 */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
         }
 
-        /* 헤더 */
         .header {
             padding: 20px 40px;
             display: flex;
@@ -103,7 +100,6 @@
             color: #667eea;
         }
 
-        /* 대시보드 영역 */
         .dashboard {
             flex: 1;
             padding: 40px;
@@ -132,7 +128,6 @@
             color: #333;
         }
 
-        /* 연령대 토글 */
         .age-toggle {
             display: flex;
             gap: 10px;
@@ -158,7 +153,6 @@
             color: white;
         }
 
-        /* 통계 표시 */
         .stats-container {
             display: flex;
             flex-direction: column;
@@ -186,7 +180,6 @@
             margin-top: 20px;
         }
 
-        /* 로딩 애니메이션 */
         .loading {
             display: inline-block;
             width: 20px;
@@ -201,20 +194,23 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .error-message {
+            color: #ff4757;
+            font-size: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- 왼쪽 사이드바 -->
     <div class="sidebar">
-        <button class="sidebar-btn active" onclick="changeView('register')">이벤트 등록</button>
+        <button class="sidebar-btn active" onclick="changeView('analytics')">분석 및 통계</button>
+        <button class="sidebar-btn" onclick="changeView('register')">이벤트 등록</button>
         <button class="sidebar-btn" onclick="changeView('search')">이벤트 조회</button>
-        <button class="sidebar-btn" onclick="changeView('analytics')">분석 및 통계</button>
     </div>
 
-    <!-- 메인 컨텐츠 -->
     <div class="main-content">
-        <!-- 헤더 -->
         <div class="header">
             <div class="logo">축의금 관리 시스템</div>
             <div class="auth-buttons">
@@ -223,7 +219,6 @@
             </div>
         </div>
 
-        <!-- 대시보드 -->
         <div class="dashboard">
             <div class="dashboard-card">
                 <div class="card-header">
@@ -233,12 +228,13 @@
                         <button class="age-btn" onclick="changeAge('30')">30대</button>
                         <button class="age-btn" onclick="changeAge('40')">40대</button>
                         <button class="age-btn" onclick="changeAge('50')">50대</button>
+                        <button class="age-btn" onclick="changeAge('60')">60대</button>
                     </div>
                 </div>
                 <div class="stats-container">
-                    <div class="stat-value" id="statValue">150,000원</div>
-                    <div class="stat-label" id="statLabel">20대 평균 축의금</div>
-                    <div class="stat-description">최근 6개월 데이터 기준</div>
+                    <div class="stat-value" id="statValue">-</div>
+                    <div class="stat-label" id="statLabel">연령대를 선택하세요</div>
+                    <div class="stat-description" id="statDescription">회원 정보 기반 통계</div>
                 </div>
             </div>
         </div>
@@ -246,10 +242,16 @@
 </div>
 
 <script>
+    const API_BASE_URL = 'http://localhost:8080';
     let currentAge = '20';
 
+    // 페이지 로드 시 20대 데이터 자동 로드
+    window.onload = function() {
+        fetchAverageAmount('20');
+    };
+
     // 연령대 변경
-    function changeAge(age) {
+    async function changeAge(age) {
         currentAge = age;
 
         // 버튼 활성화 상태 변경
@@ -260,29 +262,38 @@
 
         // 로딩 표시
         document.getElementById('statValue').innerHTML = '<div class="loading"></div>';
+        document.getElementById('statLabel').textContent = '데이터 로딩 중...';
 
-        // 백엔드에서 데이터 가져오기 (시뮬레이션)
-        setTimeout(() => {
-            fetchAverageAmount(age);
-        }, 500);
+        // 백엔드에서 데이터 가져오기
+        await fetchAverageAmount(age);
     }
 
     // 백엔드에서 평균 축의금 데이터 가져오기
     async function fetchAverageAmount(age) {
-        // 실제로는 여기서 fetch API를 사용하여 백엔드에서 데이터를 가져옵니다
-        // const response = await fetch(`/api/average-amount?age=${age}`);
-        // const data = await response.json();
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/statistics/average-amount?age=${age}`);
 
-        // 시뮬레이션 데이터
-        const mockData = {
-            '20': '150,000원',
-            '30': '200,000원',
-            '40': '300,000원',
-            '50': '500,000원'
-        };
+            if (!response.ok) {
+                throw new Error('데이터를 불러오는데 실패했습니다.');
+            }
 
-        document.getElementById('statValue').textContent = mockData[age];
-        document.getElementById('statLabel').textContent = `${age}대 평균 축의금`;
+            const data = await response.json();
+
+            // 데이터 표시
+            document.getElementById('statValue').textContent =
+                data.averageAmount.toLocaleString() + '원';
+            document.getElementById('statLabel').textContent = `${age}대 평균 축의금`;
+            document.getElementById('statDescription').textContent =
+                `총 ${data.totalCount}명의 회원 데이터 기반`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('statValue').textContent = '-';
+            document.getElementById('statLabel').innerHTML =
+                '<span class="error-message">데이터를 불러올 수 없습니다</span>';
+            document.getElementById('statDescription').textContent =
+                '서버 연결을 확인해주세요';
+        }
     }
 
     // 사이드바 뷰 변경
@@ -292,18 +303,53 @@
         });
         event.target.classList.add('active');
 
-        // 여기서 각 뷰에 맞는 컨텐츠로 변경
-        console.log(`${view} 페이지로 이동`);
+        // 페이지 이동
+        if (view === 'register') {
+            window.location.href = 'event-register.html';
+        } else if (view === 'search') {
+            window.location.href = 'event-search.html';
+        }
+
+        // 이벤트 종류 선택 추가
+        async function fetchEventStatistics(ages, eventType) {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/api/statistics/event?ages=${ages}&eventType=${eventType}&actionType=GIVE`
+                );
+
+                const data = await response.json();
+
+                document.getElementById('statValue').textContent =
+                    data.averageAmount.toLocaleString() + '원';
+                document.getElementById('statLabel').textContent =
+                    `${ages}대 ${getEventTypeName(eventType)} 평균 축의금`;
+                document.getElementById('statDescription').textContent =
+                    `총 ${data.totalCount}건의 데이터 기반`;
+
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function getEventTypeName(eventType) {
+            const names = {
+                'WEDDING': '결혼식',
+                'FUNERAL': '장례식',
+                'BIRTHDAY': '생일',
+                'ETC': '기타'
+            };
+            return names[eventType] || eventType;
+        }
     }
 
     // 로그인
     function login() {
-        alert('로그인 페이지로 이동합니다.');
+        window.location.href = 'login.html';
     }
 
     // 회원가입
     function signup() {
-        alert('회원가입 페이지로 이동합니다.');
+        window.location.href = 'register.html';
     }
 </script>
 </body>

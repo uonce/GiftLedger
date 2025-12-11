@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,23 +20,33 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtUtil {
 
     private final MyUserDetailsService myUserDetailsService;
 
     private SecretKey secretKey;
 
-    @Value("$jwt.secret")
+    @Value("${jwt.secret}")
     private String secretKeyStr;
 
     private final long tokenValidDuration = 1000 * 60 * 60 * 24;
 
     @PostConstruct
     protected void init() {
+
+        log.info("=== JWT 설정 확인 ===");
+        log.info("Secret Key String: {}", secretKeyStr);
+        log.info("Secret Key Length: {} characters", secretKeyStr.length());
+        log.info("Secret Key Bytes: {} bits", secretKeyStr.getBytes(StandardCharsets.UTF_8).length * 8);
+
         secretKey = new SecretKeySpec(
                 secretKeyStr.getBytes(StandardCharsets.UTF_8),
                 Jwts.SIG.HS256.key().build().getAlgorithm()
         );
+
+        log.info("SecretKey 초기화 완료");
+        log.info("======================");
     }
 
     public String createToken(String email, List<String> roles) {

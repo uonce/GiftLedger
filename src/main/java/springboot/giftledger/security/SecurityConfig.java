@@ -37,12 +37,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(
                                 "/",
+                                "/index.html",
                                 "/login.html",
                                 "/register.html",
+                                "/auth/**",
                                 "/register",
                                 "/users",
                                 "/auth/login",
-                                "/logout"
+                                "/logout",
+                                "/statistics/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

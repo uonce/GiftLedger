@@ -177,11 +177,11 @@
     // 회원가입 페이지로 이동
     function goToSignup() {
         // 실제로는 회원가입 페이지로 이동
-        window.location.href = 'signup.html';
+        window.location.href = 'register.html';
     }
 
     // 로그인 폼 제출
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors();
 
@@ -200,20 +200,46 @@
             hasError = true;
         }
 
-        if (!hasError) {
-            // 백엔드로 로그인 요청
-            console.log('로그인 시도:', { email, password });
-            alert('로그인 성공! (백엔드 연동 필요)');
+        if(hasError) return;
 
-            // 실제로는 fetch로 백엔드 API 호출
-            // const response = await fetch('/api/login', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify({ email, password })
-            // });
+        // 백엔드로 로그인 요청
+        console.log('로그인 시도:', {email, password});
 
-            // 로그인 성공 시 대시보드로 이동
-            // window.location.href = 'dashboard.html';
+        let url = "/auth/login";
+
+        let jsonParams = {
+            email: email,
+            password: password
+        }
+
+        let fetchOptions = {
+            method: "post",
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(jsonParams)
+        }
+
+        try {
+
+            let response = await fetch(url, fetchOptions);
+
+            if (response.ok) {
+
+                let data = await response.json();
+                console.log(data);
+
+                if (data.result === "success") {
+                    sessionStorage.setItem('authToken', data.token);
+                    alert('로그인 성공! 메인 화면으로 돌아갑니다.');
+                    window.location.href = '/index.html';
+                }
+
+            } else {
+                alert('email 또는 password 가 올바르지 않습니다.');
+            }
+        }catch (error){
+            console.error('로그인 요청 중 오류 발생:', error);
         }
     });
 </script>
