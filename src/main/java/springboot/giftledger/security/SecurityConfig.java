@@ -51,7 +51,9 @@ public class SecurityConfig {
                                 "/users",
                                 "/auth/login",
                                 "/logout",
-                                "/statistics/**"
+                                "/statistics/**",
+                                "/assets/**",
+                                "favicon.ico"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

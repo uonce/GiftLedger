@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>축의금 관리 시스템 - 나의 분석</title>
+
+    <!-- Chart.js 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <style>
         * {
             margin: 0;
@@ -239,16 +243,6 @@
             margin-bottom: 20px;
         }
 
-        .list-header {
-            font-size: 18px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         .list-item {
             background: white;
             border-radius: 10px;
@@ -293,7 +287,8 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            min-height: 300px;
+            height: 400px;  /* 고정 높이 */
+            min-height: 400px;
         }
 
         .chart-title {
@@ -455,7 +450,12 @@
                 <!-- 탭 2: 지출 패턴 분석 -->
                 <div id="tab-pattern" class="tab-content">
                     <div class="section">
-                        <div class="section-title">월별 지출 그래프</div>
+                        <div class="section-title">
+                            월별 지출 그래프
+                            <select id="yearSelector" onchange="changeYear()" style="float: right; padding: 8px 15px; border-radius: 8px; border: 2px solid #667eea; font-size: 14px; cursor: pointer;">
+                                <!-- JavaScript로 동적 생성 -->
+                            </select>
+                        </div>
                         <div class="chart-container" id="monthlyChart">
                             <div class="loading-container">
                                 <div class="loading"></div>
@@ -543,15 +543,46 @@
     </div>
 </div>
 
+<!-- 차트 관련 스크립트 - 나중에 파일로 분리 가능 -->
+<!-- <script src="/assets/js/analysis-chart.js"></script> -->
+
+<!-- 메인 스크립트 -->
 <script>
     const API_BASE_URL = 'http://localhost:8080';
     let currentTab = 'dashboard';
+    let selectedYear = new Date().getFullYear(); // 현재 연도
 
     // 페이지 로드 시 실행
     window.onload = function() {
         checkLoginStatus();
         loadDashboardData();
+        initYearSelector(); // 연도 선택 초기화
     };
+
+    // 연도 선택 드롭다운 초기화
+    function initYearSelector() {
+        const selector = document.getElementById('yearSelector');
+        const currentYear = new Date().getFullYear();
+
+        // 최근 5년치 옵션 생성
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year + '년';
+            if (year === currentYear) {
+                option.selected = true;
+            }
+            selector.appendChild(option);
+        }
+    }
+
+    // 연도 변경 시
+    function changeYear() {
+        const selector = document.getElementById('yearSelector');
+        selectedYear = parseInt(selector.value);
+        loadPatternData(); // 차트 다시 그리기
+    }
 
     // 로그인 상태 확인
     function checkLoginStatus() {
@@ -560,13 +591,11 @@
         const authButtons = document.getElementById('authButtons');
 
         if (!token) {
-            // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
             alert('로그인이 필요한 서비스입니다.');
             window.location.href = 'login.html';
             return;
         }
 
-        // 로그인 상태 → 로그아웃 버튼만 보여주기
         authButtons.innerHTML = `
             <button class="auth-btn" onclick="logout()">로그아웃</button>
         `;
@@ -575,6 +604,7 @@
     // 로그아웃
     function logout() {
         localStorage.removeItem('accessToken');
+        localStorage.removeItem('loginTime');
         alert('로그아웃 되었습니다.');
         window.location.href = 'index.html';
     }
@@ -583,15 +613,12 @@
     function changeTab(tabName) {
         currentTab = tabName;
 
-        // 모든 탭 버튼과 컨텐츠 비활성화
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        // 선택된 탭 활성화
         event.target.classList.add('active');
         document.getElementById(`tab-${tabName}`).classList.add('active');
 
-        // 해당 탭 데이터 로드
         loadTabData(tabName);
     }
 
@@ -602,7 +629,7 @@
                 loadDashboardData();
                 break;
             case 'pattern':
-                loadPatternData();
+                loadPatternData();  // analysis-chart.js에 정의됨
                 break;
             case 'relation':
                 loadRelationData();
@@ -618,58 +645,57 @@
         const token = localStorage.getItem('accessToken');
 
         try {
-            // API 호출 예시 (실제 API 엔드포인트에 맞게 수정 필요)
-            const response = await fetch(`${API_BASE_URL}/api/my-statistics/dashboard`, {
+            const dashboardResponse = await fetch(`${API_BASE_URL}/analysis/dashboard`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'X-AUTH-TOKEN': token
                 }
             });
 
-            if (!response.ok) {
+            if (!dashboardResponse.ok) {
                 throw new Error('Failed to fetch dashboard data');
             }
 
-            const data = await response.json();
+            const dashboardData = await dashboardResponse.json();
 
-            // 데이터 표시
-            document.getElementById('totalGive').textContent = data.totalGive.toLocaleString() + '원';
-            document.getElementById('totalTake').textContent = data.totalTake.toLocaleString() + '원';
-            document.getElementById('balance').textContent = (data.totalTake - data.totalGive).toLocaleString() + '원';
-            document.getElementById('recoveryRate').textContent = data.recoveryRate + '%';
+            document.getElementById('totalGive').textContent = dashboardData.totalGive.toLocaleString() + '원';
+            document.getElementById('totalTake').textContent = dashboardData.totalTake.toLocaleString() + '원';
+            document.getElementById('balance').textContent = dashboardData.balance.toLocaleString() + '원';
+            document.getElementById('recoveryRate').textContent = dashboardData.recoveryRate + '%';
 
-            // 전년 대비 변화
-            const changePercent = data.yearChangePercent > 0 ? '+' + data.yearChangePercent : data.yearChangePercent;
+            const changePercent = dashboardData.yearChangePercent > 0
+                ? '+' + dashboardData.yearChangePercent
+                : dashboardData.yearChangePercent;
             document.getElementById('yearChange').textContent = changePercent + '%';
-            document.getElementById('yearChangeDetail').textContent = data.yearChangeAmount.toLocaleString() + '원';
+            document.getElementById('yearChangeDetail').textContent = dashboardData.yearChangeAmount.toLocaleString() + '원';
 
-            // 최근 이벤트
-            displayRecentEvents(data.recentEvents);
+            const eventsResponse = await fetch(`${API_BASE_URL}/analysis/recent-events`, {
+                headers: {
+                    'X-AUTH-TOKEN': token
+                }
+            });
+
+            if (eventsResponse.ok) {
+                const events = await eventsResponse.json();
+                displayRecentEvents(events);
+            } else {
+                document.getElementById('recentEvents').innerHTML = '<div class="no-data">최근 이벤트가 없습니다.</div>';
+            }
 
         } catch (error) {
             console.error('Error loading dashboard:', error);
-            // 임시 데모 데이터 표시
-            displayDemoDashboard();
+            displayErrorMessage();
         }
     }
 
-    // 임시 데모 데이터 표시
-    function displayDemoDashboard() {
-        document.getElementById('totalGive').textContent = '1,500,000원';
-        document.getElementById('totalTake').textContent = '1,200,000원';
-        document.getElementById('balance').textContent = '-300,000원';
-        document.getElementById('recoveryRate').textContent = '80%';
-        document.getElementById('yearChange').textContent = '+15%';
-        document.getElementById('yearChangeDetail').textContent = '+200,000원';
-
-        // 최근 이벤트 데모 데이터
-        const demoEvents = [
-            { name: '김철수', eventType: '결혼식', amount: 100000, date: '2024-12-10', type: 'GIVE' },
-            { name: '이영희', eventType: '생일', amount: 50000, date: '2024-12-08', type: 'TAKE' },
-            { name: '박민수', eventType: '장례식', amount: 200000, date: '2024-12-05', type: 'GIVE' },
-            { name: '최지은', eventType: '결혼식', amount: 150000, date: '2024-12-03', type: 'TAKE' },
-            { name: '정대한', eventType: '생일', amount: 30000, date: '2024-12-01', type: 'GIVE' }
-        ];
-        displayRecentEvents(demoEvents);
+    // 에러 메시지 표시
+    function displayErrorMessage() {
+        document.getElementById('totalGive').textContent = '오류';
+        document.getElementById('totalTake').textContent = '오류';
+        document.getElementById('balance').textContent = '오류';
+        document.getElementById('recoveryRate').textContent = '오류';
+        document.getElementById('yearChange').textContent = '오류';
+        document.getElementById('yearChangeDetail').textContent = '데이터를 불러올 수 없습니다';
+        document.getElementById('recentEvents').innerHTML = '<div class="error-message">데이터를 불러오는데 실패했습니다.</div>';
     }
 
     // 최근 이벤트 표시
@@ -683,13 +709,15 @@
 
         let html = '';
         events.forEach(event => {
-            const typeText = event.type === 'GIVE' ? '지출' : '수입';
-            const typeColor = event.type === 'GIVE' ? '#ff7675' : '#00b894';
+            const typeText = event.actionType === 'GIVE' ? '지출' : '수입';
+            const typeColor = event.actionType === 'GIVE' ? '#ff7675' : '#00b894';
+            const eventTypeName = getEventTypeName(event.eventType);
+
             html += `
                 <div class="list-item">
                     <div class="list-item-info">
-                        <div class="list-item-name">${event.name}</div>
-                        <div class="list-item-detail">${event.eventType} · ${event.date} · ${typeText}</div>
+                        <div class="list-item-name">${event.acquaintanceName}</div>
+                        <div class="list-item-detail">${eventTypeName} · ${event.eventDate} · ${typeText}</div>
                     </div>
                     <div class="list-item-value" style="color: ${typeColor}">
                         ${event.amount.toLocaleString()}원
@@ -700,54 +728,224 @@
         container.innerHTML = html;
     }
 
+    // 이벤트 타입 한글명 변환
+    function getEventTypeName(eventType) {
+        const names = {
+            'WEDDING': '결혼식',
+            'FUNERAL': '장례식',
+            'BIRTHDAY': '생일',
+            'ETC': '기타'
+        };
+        return names[eventType] || eventType;
+    }
+
     // 2. 지출 패턴 데이터 로드
     async function loadPatternData() {
-        // TODO: API 연동
-        displayDemoPattern();
+        const token = localStorage.getItem('accessToken');
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/analysis/pattern?year=${selectedYear}`, {
+                headers: {
+                    'X-AUTH-TOKEN': token
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch pattern data');
+            }
+
+            const data = await response.json();
+
+            // 월별 차트 그리기
+            drawMonthlyChart(data.monthlyData);
+
+            // 요일별 차트 그리기
+            drawWeekdayChart(data.weekdayData);
+
+            // 이벤트별 분포 표시
+            displayEventDistribution(data.eventTypeData);
+
+        } catch (error) {
+            console.error('Error loading pattern:', error);
+            displayPatternError();
+        }
     }
 
-    function displayDemoPattern() {
-        // 월별 차트
-        document.getElementById('monthlyChart').innerHTML = `
-            <div class="chart-title">월별 지출 추이</div>
-            <div class="no-data">차트 데이터를 준비 중입니다.</div>
-        `;
+    // 월별 차트 그리기
+    function drawMonthlyChart(monthlyData) {
+        const ctx = document.getElementById('monthlyChart');
 
-        // 요일별 차트
-        document.getElementById('weekdayChart').innerHTML = `
-            <div class="chart-title">요일별 지출 패턴</div>
-            <div class="no-data">차트 데이터를 준비 중입니다.</div>
-        `;
+        if (window.monthlyChartInstance) {
+            window.monthlyChartInstance.destroy();
+        }
 
-        // 이벤트별 분포
-        const eventTypes = [
-            { type: '결혼식', count: 15, amount: 1500000 },
-            { type: '장례식', count: 8, amount: 800000 },
-            { type: '생일', count: 12, amount: 360000 },
-            { type: '기타', count: 5, amount: 250000 }
-        ];
+        ctx.innerHTML = `<div class="chart-title">월별 지출 추이 (${selectedYear}년)</div><canvas id="monthlyCanvas" style="max-height: 350px;"></canvas>`;
+        const canvas = document.getElementById('monthlyCanvas');
+
+        const months = ['1월', '2월', '3월', '4월', '5월', '6월',
+            '7월', '8월', '9월', '10월', '11월', '12월'];
+        const amounts = [];
+
+        for (let i = 1; i <= 12; i++) {
+            amounts.push(monthlyData[i] || 0);
+        }
+
+        window.monthlyChartInstance = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: '지출 금액',
+                    data: amounts,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,  // 비율 유지 안 함 (높이 고정)
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '지출: ' + context.parsed.y.toLocaleString() + '원';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + '원';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 요일별 차트 그리기
+    function drawWeekdayChart(weekdayData) {
+        const ctx = document.getElementById('weekdayChart');
+
+        if (window.weekdayChartInstance) {
+            window.weekdayChartInstance.destroy();
+        }
+
+        ctx.innerHTML = '<div class="chart-title">요일별 평균 지출</div><canvas id="weekdayCanvas" style="max-height: 350px;"></canvas>';
+        const canvas = document.getElementById('weekdayCanvas');
+
+        const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+        const amounts = days.map(day => weekdayData[day] || 0);
+
+        window.weekdayChartInstance = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: days,
+                datasets: [{
+                    label: '평균 지출',
+                    data: amounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)',
+                        'rgba(255, 159, 64, 0.7)',
+                        'rgba(199, 199, 199, 0.7)'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '평균: ' + context.parsed.y.toLocaleString() + '원';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString() + '원';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // 이벤트별 분포 표시
+    function displayEventDistribution(eventTypeData) {
+        const container = document.getElementById('eventDistribution');
+
+        const eventTypes = {
+            'WEDDING': { name: '결혼식', icon: '💒' },
+            'FUNERAL': { name: '장례식', icon: '🕯️' },
+            'BIRTHDAY': { name: '생일', icon: '🎂' },
+            'ETC': { name: '기타', icon: '🎁' }
+        };
 
         let html = '';
-        eventTypes.forEach(event => {
+
+        for (const [type, info] of Object.entries(eventTypes)) {
+            const data = eventTypeData[type];
+            const count = data ? data.count : 0;
+            const amount = data ? data.amount : 0;
+
             html += `
                 <div class="stat-box">
-                    <div class="stat-label">${event.type}</div>
-                    <div class="stat-value">${event.count}건</div>
-                    <div class="stat-detail">${event.amount.toLocaleString()}원</div>
+                    <div class="stat-label">${info.icon} ${info.name}</div>
+                    <div class="stat-value">${count}건</div>
+                    <div class="stat-detail">${amount.toLocaleString()}원</div>
                 </div>
             `;
-        });
-        document.getElementById('eventDistribution').innerHTML = html;
+        }
+
+        container.innerHTML = html;
     }
 
-    // 3. 지인 분석 데이터 로드
+    // 패턴 에러 표시
+    function displayPatternError() {
+        document.getElementById('monthlyChart').innerHTML =
+            '<div class="error-message">월별 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('weekdayChart').innerHTML =
+            '<div class="error-message">요일별 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('eventDistribution').innerHTML =
+            '<div class="error-message">이벤트 분포 데이터를 불러올 수 없습니다.</div>';
+    }
+
+    // 3. 지인 분석 데이터 로드 (TODO)
     async function loadRelationData() {
-        // TODO: API 연동
         displayDemoRelation();
     }
 
     function displayDemoRelation() {
-        // TOP 5 지인
         const topRelations = [
             { name: '김철수', totalAmount: 500000, eventCount: 5, avgAmount: 100000 },
             { name: '이영희', totalAmount: 400000, eventCount: 4, avgAmount: 100000 },
@@ -770,7 +968,6 @@
         });
         document.getElementById('topRelations').innerHTML = html;
 
-        // 지인별 회수율
         const recoveryData = [
             { name: '김철수', give: 300000, take: 250000, rate: 83 },
             { name: '이영희', give: 200000, take: 200000, rate: 100 },
@@ -793,9 +990,8 @@
         document.getElementById('relationRecovery').innerHTML = html;
     }
 
-    // 4. 회수율 데이터 로드
+    // 4. 회수율 데이터 로드 (TODO)
     async function loadRecoveryData() {
-        // TODO: API 연동
         displayDemoRecovery();
     }
 
@@ -804,7 +1000,6 @@
         document.getElementById('unrecovered').textContent = '500,000원';
         document.getElementById('expectedRecovery').textContent = '300,000원';
 
-        // 미회수 지인 리스트
         const unrecoveredList = [
             { name: '최지은', amount: 200000, date: '2024-06-15', days: 180 },
             { name: '강민호', amount: 150000, date: '2024-08-20', days: 113 },
@@ -830,7 +1025,6 @@
         });
         document.getElementById('unrecoveredList').innerHTML = html;
 
-        // 장기 미회수 경고
         const longTermList = unrecoveredList.filter(rel => rel.days >= 180);
 
         if (longTermList.length === 0) {
