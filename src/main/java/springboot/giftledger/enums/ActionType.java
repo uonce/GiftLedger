@@ -19,4 +19,13 @@ public enum ActionType {
     public String getDescription() {
         return description;
     }
+    
+    public static ActionType fromDescription(String description) {
+        for (ActionType type : ActionType.values()) {
+            if (type.description.equals(description)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown description: " + description);
+    }
 }
