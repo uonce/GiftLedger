@@ -40,12 +40,16 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/login.html",
                                 "/register.html",
+                                "/event.html",
+                                "/eventregister.html",
+                                "/detailevent.html",
                                 "/auth/**",
                                 "/register",
                                 "/users",
                                 "/auth/login",
                                 "/logout",
-                                "/statistics/**"
+                                "/statistics/**",
+                                "/assets/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

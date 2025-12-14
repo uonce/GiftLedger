@@ -5,15 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventDetailsResultDto {
-    private String result;
-    private EventDto eventDto;
+public class GuestLogDto {
 
-    private List<GuestLogDto> guestLogDtos;
+    private AcquaintanceDto acquaintanceDto;
+    private GiftLogDto giftLogDto;
 }

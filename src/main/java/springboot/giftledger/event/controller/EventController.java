@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import springboot.giftledger.event.dto.EventDetailsResultDto;
 import springboot.giftledger.event.dto.EventRequestDto;
 import springboot.giftledger.event.dto.EventResultDto;
 import springboot.giftledger.event.service.EventService;
-import springboot.giftledger.security.MyUserDetails;
 
 @RestController
 @RequestMapping("/events")
@@ -45,7 +45,7 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventResultDto> detailsEvent(
+    public ResponseEntity<EventDetailsResultDto> detailsEvent(
             @AuthenticationPrincipal String email,
             @PathVariable Long eventId) {
 
@@ -53,19 +53,19 @@ public class EventController {
         log.info("[EventController - detailsEvent] eventId: {}", eventId);
 
         try {
-            EventResultDto eventResultDto = eventService.detailsEvent(email, eventId);
+            EventDetailsResultDto eventDetailsResultDto = eventService.detailsEvent(email, eventId);
 
-            log.info("[EventController - detailsEvent] eventResultDto: {}", eventResultDto);
-            if ("success".equals(eventResultDto.getResult())) {
-                return ResponseEntity.ok(eventResultDto);
+            log.info("[EventController - detailsEvent] eventDetailsResultDto: {}", eventDetailsResultDto);
+            if ("success".equals(eventDetailsResultDto.getResult())) {
+                return ResponseEntity.ok(eventDetailsResultDto);
             } else {
-                log.warn("[EventController - detailsEvent] eventResultDto 등록 실패: {}", eventResultDto);
-                return ResponseEntity.status(401).body(eventResultDto);
+                log.warn("[EventController - detailsEvent] eventDetailsResultDto 등록 실패: {}", eventDetailsResultDto);
+                return ResponseEntity.status(401).body(eventDetailsResultDto);
             }
         } catch (Exception e) {
             log.error("[EventController - detailsEvent] 서버 오류 발생", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
-                    .body(EventResultDto.builder().result("fail").build());
+                    .body(EventDetailsResultDto.builder().result("fail").build());
         }
 
     }

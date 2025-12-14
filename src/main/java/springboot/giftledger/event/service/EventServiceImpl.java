@@ -4,15 +4,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import springboot.giftledger.entity.Acquaintance;
-import springboot.giftledger.entity.Event;
-import springboot.giftledger.entity.GiftLog;
-import springboot.giftledger.entity.Member;
+import springboot.giftledger.entity.*;
 import springboot.giftledger.event.dto.*;
-import springboot.giftledger.repository.AcquaintanceRepository;
-import springboot.giftledger.repository.EventRepository;
-import springboot.giftledger.repository.GiftLogRepository;
-import springboot.giftledger.repository.MemberRepository;
+import springboot.giftledger.repository.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +20,7 @@ public class EventServiceImpl implements EventService {
     private final AcquaintanceRepository acquaintanceRepository;
     private final GiftLogRepository giftLogRepository;
     private final MemberRepository memberRepository;
+    private final EventAcquaintanceRepository eventAcquaintanceRepository;
 
     @Override
     @Transactional
@@ -35,7 +33,8 @@ public class EventServiceImpl implements EventService {
         Member member = memberRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 ID 입니다."));
 
-        Acquaintance acquaintance = acquaintanceRepository.findByPhone(acquaintanceDto.getPhone());
+        // member로 해당 멤버에 속한 것이 맞는지 검증해줘야됨!!!!!!!!!!
+        Acquaintance acquaintance = acquaintanceRepository.findByPhone_AndMember(acquaintanceDto.getPhone(), member);
 
         // 1. 지인이 이미 있는지 전화번호로 확인.
         if (acquaintance == null) {
@@ -56,7 +55,7 @@ public class EventServiceImpl implements EventService {
 
         // 이벤트 등록
         Event event = Event.builder()
-                .acquaintance(acquaintance)
+                .member(member)
                 .eventType(eventDto.getEventType())
                 .eventName(eventDto.getEventName())
                 .eventDate(eventDto.getEventDate())
@@ -69,9 +68,18 @@ public class EventServiceImpl implements EventService {
         eventDto.setEventId(event.getEventId());
         log.info("event 저장 완료");
 
+        // 관계 테이블 등록
+        EventAcquaintance eventAcquaintance = EventAcquaintance.builder()
+                .event(event)
+                .acquaintance(acquaintance)
+                .build();
+
+        eventAcquaintanceRepository.save(eventAcquaintance);
+        log.info("관계 테이블 저장 완료");
+
         // 4. 기프트로그 등록
         GiftLog giftLog = GiftLog.builder()
-                .event(event)
+                .eventAcquaintance(eventAcquaintance)
                 .actionType(giftLogDto.getActionType())
                 .amount(giftLogDto.getAmount())
                 .payMethod(giftLogDto.getPayMethod())
@@ -94,7 +102,6 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional
     public EventResultDto deleteEvent(String email, Long giftId) {
-        // member 존재 확인
         // giftLogId로 삭제
         giftLogRepository.deleteByGiftId(giftId);
 
@@ -107,16 +114,58 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventResultDto detailsEvent(String email, Long eventId) {
-        // email로 memberId 조회
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원 ID 입니다."));
+    public EventDetailsResultDto detailsEvent(String email, Long eventId) {
 
-        // => 한번에 조회해서, result로 묶어 보내면 -> 프론트에서 처리.
-        // 하나의 이벤트에 무수히 많은 지인들과 그와 연결된 기프트로그
-        // 즉, 하나의 이벤트 : 지인-기프트로그 리스트
-        eventRepository.findDetailsByEventId(email, eventId);
+        Event event = eventRepository.findDetailsByEventId(email, eventId);
+        EventDto eventDto = EventDto.builder()
+                .eventId(event.getEventId())
+                .eventType(event.getEventType())
+                .eventName(event.getEventName())
+                .eventDate(event.getEventDate())
+                .location(event.getLocation())
+                .isOwner(event.getIsOwner())
+                .build();
 
-        return null;
+        List<GuestLogDto> guestLogDtos = new ArrayList<>();
+
+        for(EventAcquaintance eAcq : event.getEventAcquaintances()) {
+
+            Acquaintance acquaintance = eAcq.getAcquaintance();
+
+            AcquaintanceDto acquaintanceDto = AcquaintanceDto.builder()
+                    .acquaintanceId(acquaintance.getAcquaintanceId())
+                    .name(acquaintance.getName())
+                    .groupName(acquaintance.getGroupName())
+                    .phone(acquaintance.getPhone())
+                    .relation(acquaintance.getRelation())
+                    .build();
+
+            List<GiftLog> giftLogs = eAcq.getGiftLogs();
+
+            if (giftLogs != null && !giftLogs.isEmpty()) {
+                for (GiftLog gl : giftLogs) {
+                    GiftLogDto giftLogDto = GiftLogDto.builder()
+                            .giftLogId(gl.getGiftId())
+                            .actionType(gl.getActionType())
+                            .amount(gl.getAmount())
+                            .payMethod(gl.getPayMethod())
+                            .memo(gl.getMemo())
+                            .build();
+
+                    GuestLogDto guestLogItem = GuestLogDto.builder()
+                            .acquaintanceDto(acquaintanceDto)
+                            .giftLogDto(giftLogDto)
+                            .build();
+
+                    guestLogDtos.add(guestLogItem);
+                }
+            }
+        }
+
+        return EventDetailsResultDto.builder()
+                .result("success")
+                .eventDto(eventDto)
+                .guestLogDtos(guestLogDtos)
+                .build();
     }
 }

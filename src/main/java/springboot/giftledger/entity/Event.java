@@ -1,7 +1,10 @@
 package springboot.giftledger.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import springboot.giftledger.enums.EventType;
 
 import java.time.LocalDateTime;
@@ -40,5 +43,5 @@ public class Event {
 
 
     @OneToMany(mappedBy = "event", fetch = FetchType.LAZY)
-    private List<GiftLog> giftLogs;
+    private List<EventAcquaintance> eventAcquaintances;
 }
