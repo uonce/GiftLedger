@@ -131,7 +131,6 @@
             margin-bottom: 20px;
         }
 
-        /* 탭 네비게이션 */
         .tab-navigation {
             display: flex;
             gap: 10px;
@@ -164,7 +163,6 @@
             transform: translateY(-2px);
         }
 
-        /* 탭 컨텐츠 */
         .tab-content {
             display: none;
             flex: 1;
@@ -175,7 +173,6 @@
             display: block;
         }
 
-        /* 공통 스타일 */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -235,7 +232,6 @@
             color: #666;
         }
 
-        /* 리스트 스타일 */
         .list-container {
             background: #f8f9fa;
             border-radius: 12px;
@@ -281,13 +277,12 @@
             color: #667eea;
         }
 
-        /* 차트 컨테이너 */
         .chart-container {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
-            height: 400px;  /* 고정 높이 */
+            height: 400px;
             min-height: 400px;
         }
 
@@ -298,7 +293,6 @@
             margin-bottom: 15px;
         }
 
-        /* 로딩 및 에러 */
         .loading {
             display: inline-block;
             width: 40px;
@@ -335,7 +329,6 @@
             font-size: 16px;
         }
 
-        /* 경고 배지 */
         .badge {
             display: inline-block;
             padding: 5px 12px;
@@ -359,7 +352,6 @@
             color: white;
         }
 
-        /* 섹션 구분 */
         .section {
             margin-bottom: 30px;
         }
@@ -377,8 +369,7 @@
 <body>
 <div class="container">
     <div class="sidebar">
-        <button class="sidebar-btn" onclick="goToPage('index.html')">전체 통계</button>
-        <button class="sidebar-btn active" onclick="goToPage('analysis.html')">나의 분석</button>
+        <button class="sidebar-btn active" onclick="goToPage('analysis.html')">분석 및 통계</button>
         <button class="sidebar-btn" onclick="goToPage('event-register.html')">이벤트 등록</button>
         <button class="sidebar-btn" onclick="goToPage('event-search.html')">이벤트 조회</button>
     </div>
@@ -386,17 +377,13 @@
     <div class="main-content">
         <div class="header">
             <div class="logo">축의금 관리 시스템</div>
-            <div class="auth-buttons" id="authButtons">
-                <!-- 로그인 상태에 따라 동적으로 변경 -->
-            </div>
+            <div class="auth-buttons" id="authButtons"></div>
         </div>
 
         <div class="dashboard">
             <div class="dashboard-card">
                 <div class="card-header">
                     <div class="card-title">나의 축의금 분석</div>
-
-                    <!-- 탭 네비게이션 -->
                     <div class="tab-navigation">
                         <button class="tab-btn active" onclick="changeTab('dashboard')">📊 종합 대시보드</button>
                         <button class="tab-btn" onclick="changeTab('pattern')">📈 지출 패턴</button>
@@ -452,9 +439,7 @@
                     <div class="section">
                         <div class="section-title">
                             월별 지출 그래프
-                            <select id="yearSelector" onchange="changeYear()" style="float: right; padding: 8px 15px; border-radius: 8px; border: 2px solid #667eea; font-size: 14px; cursor: pointer;">
-                                <!-- JavaScript로 동적 생성 -->
-                            </select>
+                            <select id="yearSelector" onchange="changeYear()" style="float: right; padding: 8px 15px; border-radius: 8px; border: 2px solid #667eea; font-size: 14px; cursor: pointer;"></select>
                         </div>
                         <div class="chart-container" id="monthlyChart">
                             <div class="loading-container">
@@ -511,12 +496,8 @@
                             <div class="stat-value" id="totalRecovery">0%</div>
                         </div>
                         <div class="stat-box danger">
-                            <div class="stat-label">미회수 금액</div>
-                            <div class="stat-value" id="unrecovered">0원</div>
-                        </div>
-                        <div class="stat-box warning">
-                            <div class="stat-label">예상 회수 금액</div>
-                            <div class="stat-value" id="expectedRecovery">0원</div>
+                            <div class="stat-label">잔액</div>
+                            <div class="stat-value" id="recoveryBalance">0원</div>
                         </div>
                     </div>
 
@@ -530,7 +511,7 @@
                     </div>
 
                     <div class="section">
-                        <div class="section-title">장기 미회수 경고</div>
+                        <div class="section-title">장기 미회수 경고 (180일 이상)</div>
                         <div class="list-container" id="longTermWarning">
                             <div class="loading-container">
                                 <div class="loading"></div>
@@ -543,28 +524,20 @@
     </div>
 </div>
 
-<!-- 차트 관련 스크립트 - 나중에 파일로 분리 가능 -->
-<!-- <script src="/assets/js/analysis-chart.js"></script> -->
-
-<!-- 메인 스크립트 -->
 <script>
     const API_BASE_URL = 'http://localhost:8080';
     let currentTab = 'dashboard';
-    let selectedYear = new Date().getFullYear(); // 현재 연도
+    let selectedYear = new Date().getFullYear();
 
-    // 페이지 로드 시 실행
     window.onload = function() {
         checkLoginStatus();
         loadDashboardData();
-        initYearSelector(); // 연도 선택 초기화
+        initYearSelector();
     };
 
-    // 연도 선택 드롭다운 초기화
     function initYearSelector() {
         const selector = document.getElementById('yearSelector');
         const currentYear = new Date().getFullYear();
-
-        // 최근 5년치 옵션 생성
         for (let i = 0; i < 5; i++) {
             const year = currentYear - i;
             const option = document.createElement('option');
@@ -577,31 +550,23 @@
         }
     }
 
-    // 연도 변경 시
     function changeYear() {
         const selector = document.getElementById('yearSelector');
         selectedYear = parseInt(selector.value);
-        loadPatternData(); // 차트 다시 그리기
+        loadPatternData();
     }
 
-    // 로그인 상태 확인
     function checkLoginStatus() {
         const token = localStorage.getItem('accessToken');
-        console.log('현재 토큰:', token);
         const authButtons = document.getElementById('authButtons');
-
         if (!token) {
             alert('로그인이 필요한 서비스입니다.');
             window.location.href = 'login.html';
             return;
         }
-
-        authButtons.innerHTML = `
-            <button class="auth-btn" onclick="logout()">로그아웃</button>
-        `;
+        authButtons.innerHTML = '<button class="auth-btn" onclick="logout()">로그아웃</button>';
     }
 
-    // 로그아웃
     function logout() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('loginTime');
@@ -609,27 +574,22 @@
         window.location.href = 'index.html';
     }
 
-    // 탭 변경
     function changeTab(tabName) {
         currentTab = tabName;
-
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
         event.target.classList.add('active');
         document.getElementById(`tab-${tabName}`).classList.add('active');
-
         loadTabData(tabName);
     }
 
-    // 탭별 데이터 로드
     function loadTabData(tabName) {
         switch(tabName) {
             case 'dashboard':
                 loadDashboardData();
                 break;
             case 'pattern':
-                loadPatternData();  // analysis-chart.js에 정의됨
+                loadPatternData();
                 break;
             case 'relation':
                 loadRelationData();
@@ -640,21 +600,13 @@
         }
     }
 
-    // 1. 종합 대시보드 데이터 로드
     async function loadDashboardData() {
         const token = localStorage.getItem('accessToken');
-
         try {
             const dashboardResponse = await fetch(`${API_BASE_URL}/analysis/dashboard`, {
-                headers: {
-                    'X-AUTH-TOKEN': token
-                }
+                headers: { 'X-AUTH-TOKEN': token }
             });
-
-            if (!dashboardResponse.ok) {
-                throw new Error('Failed to fetch dashboard data');
-            }
-
+            if (!dashboardResponse.ok) throw new Error('Failed to fetch dashboard data');
             const dashboardData = await dashboardResponse.json();
 
             document.getElementById('totalGive').textContent = dashboardData.totalGive.toLocaleString() + '원';
@@ -662,32 +614,25 @@
             document.getElementById('balance').textContent = dashboardData.balance.toLocaleString() + '원';
             document.getElementById('recoveryRate').textContent = dashboardData.recoveryRate + '%';
 
-            const changePercent = dashboardData.yearChangePercent > 0
-                ? '+' + dashboardData.yearChangePercent
-                : dashboardData.yearChangePercent;
+            const changePercent = dashboardData.yearChangePercent > 0 ? '+' + dashboardData.yearChangePercent : dashboardData.yearChangePercent;
             document.getElementById('yearChange').textContent = changePercent + '%';
             document.getElementById('yearChangeDetail').textContent = dashboardData.yearChangeAmount.toLocaleString() + '원';
 
             const eventsResponse = await fetch(`${API_BASE_URL}/analysis/recent-events`, {
-                headers: {
-                    'X-AUTH-TOKEN': token
-                }
+                headers: { 'X-AUTH-TOKEN': token }
             });
-
             if (eventsResponse.ok) {
                 const events = await eventsResponse.json();
                 displayRecentEvents(events);
             } else {
                 document.getElementById('recentEvents').innerHTML = '<div class="no-data">최근 이벤트가 없습니다.</div>';
             }
-
         } catch (error) {
             console.error('Error loading dashboard:', error);
             displayErrorMessage();
         }
     }
 
-    // 에러 메시지 표시
     function displayErrorMessage() {
         document.getElementById('totalGive').textContent = '오류';
         document.getElementById('totalTake').textContent = '오류';
@@ -698,97 +643,60 @@
         document.getElementById('recentEvents').innerHTML = '<div class="error-message">데이터를 불러오는데 실패했습니다.</div>';
     }
 
-    // 최근 이벤트 표시
     function displayRecentEvents(events) {
         const container = document.getElementById('recentEvents');
-
         if (!events || events.length === 0) {
             container.innerHTML = '<div class="no-data">최근 이벤트가 없습니다.</div>';
             return;
         }
-
         let html = '';
         events.forEach(event => {
             const typeText = event.actionType === 'GIVE' ? '지출' : '수입';
             const typeColor = event.actionType === 'GIVE' ? '#ff7675' : '#00b894';
             const eventTypeName = getEventTypeName(event.eventType);
-
             html += `
                 <div class="list-item">
                     <div class="list-item-info">
                         <div class="list-item-name">${event.acquaintanceName}</div>
                         <div class="list-item-detail">${eventTypeName} · ${event.eventDate} · ${typeText}</div>
                     </div>
-                    <div class="list-item-value" style="color: ${typeColor}">
-                        ${event.amount.toLocaleString()}원
-                    </div>
+                    <div class="list-item-value" style="color: ${typeColor}">${event.amount.toLocaleString()}원</div>
                 </div>
             `;
         });
         container.innerHTML = html;
     }
 
-    // 이벤트 타입 한글명 변환
     function getEventTypeName(eventType) {
-        const names = {
-            'WEDDING': '결혼식',
-            'FUNERAL': '장례식',
-            'BIRTHDAY': '생일',
-            'ETC': '기타'
-        };
+        const names = { 'WEDDING': '결혼식', 'FUNERAL': '장례식', 'BIRTHDAY': '생일', 'ETC': '기타' };
         return names[eventType] || eventType;
     }
 
-    // 2. 지출 패턴 데이터 로드
     async function loadPatternData() {
         const token = localStorage.getItem('accessToken');
-
         try {
             const response = await fetch(`${API_BASE_URL}/analysis/pattern?year=${selectedYear}`, {
-                headers: {
-                    'X-AUTH-TOKEN': token
-                }
+                headers: { 'X-AUTH-TOKEN': token }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch pattern data');
-            }
-
+            if (!response.ok) throw new Error('Failed to fetch pattern data');
             const data = await response.json();
-
-            // 월별 차트 그리기
             drawMonthlyChart(data.monthlyData);
-
-            // 요일별 차트 그리기
             drawWeekdayChart(data.weekdayData);
-
-            // 이벤트별 분포 표시
             displayEventDistribution(data.eventTypeData);
-
         } catch (error) {
             console.error('Error loading pattern:', error);
             displayPatternError();
         }
     }
 
-    // 월별 차트 그리기
     function drawMonthlyChart(monthlyData) {
         const ctx = document.getElementById('monthlyChart');
-
-        if (window.monthlyChartInstance) {
-            window.monthlyChartInstance.destroy();
-        }
-
+        if (window.monthlyChartInstance) window.monthlyChartInstance.destroy();
         ctx.innerHTML = `<div class="chart-title">월별 지출 추이 (${selectedYear}년)</div><canvas id="monthlyCanvas" style="max-height: 350px;"></canvas>`;
         const canvas = document.getElementById('monthlyCanvas');
-
-        const months = ['1월', '2월', '3월', '4월', '5월', '6월',
-            '7월', '8월', '9월', '10월', '11월', '12월'];
+        const months = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
         const amounts = [];
-
-        for (let i = 1; i <= 12; i++) {
-            amounts.push(monthlyData[i] || 0);
-        }
+        for (let i = 1; i <= 12; i++) amounts.push(monthlyData[i] || 0);
 
         window.monthlyChartInstance = new Chart(canvas, {
             type: 'line',
@@ -810,12 +718,9 @@
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,  // 비율 유지 안 함 (높이 고정)
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    },
+                    legend: { display: true, position: 'top' },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -838,17 +743,11 @@
         });
     }
 
-    // 요일별 차트 그리기
     function drawWeekdayChart(weekdayData) {
         const ctx = document.getElementById('weekdayChart');
-
-        if (window.weekdayChartInstance) {
-            window.weekdayChartInstance.destroy();
-        }
-
+        if (window.weekdayChartInstance) window.weekdayChartInstance.destroy();
         ctx.innerHTML = '<div class="chart-title">요일별 평균 지출</div><canvas id="weekdayCanvas" style="max-height: 350px;"></canvas>';
         const canvas = document.getElementById('weekdayCanvas');
-
         const days = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
         const amounts = days.map(day => weekdayData[day] || 0);
 
@@ -860,13 +759,8 @@
                     label: '평균 지출',
                     data: amounts,
                     backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 159, 64, 0.7)',
-                        'rgba(199, 199, 199, 0.7)'
+                        'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)', 'rgba(199, 199, 199, 0.7)'
                     ],
                     borderRadius: 8
                 }]
@@ -875,9 +769,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        display: false
-                    },
+                    legend: { display: false },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -900,24 +792,19 @@
         });
     }
 
-    // 이벤트별 분포 표시
     function displayEventDistribution(eventTypeData) {
         const container = document.getElementById('eventDistribution');
-
         const eventTypes = {
             'WEDDING': { name: '결혼식', icon: '💒' },
             'FUNERAL': { name: '장례식', icon: '🕯️' },
             'BIRTHDAY': { name: '생일', icon: '🎂' },
             'ETC': { name: '기타', icon: '🎁' }
         };
-
         let html = '';
-
         for (const [type, info] of Object.entries(eventTypes)) {
             const data = eventTypeData[type];
             const count = data ? data.count : 0;
             const amount = data ? data.amount : 0;
-
             html += `
                 <div class="stat-box">
                     <div class="stat-label">${info.icon} ${info.name}</div>
@@ -926,58 +813,37 @@
                 </div>
             `;
         }
-
         container.innerHTML = html;
     }
 
-    // 패턴 에러 표시
     function displayPatternError() {
-        document.getElementById('monthlyChart').innerHTML =
-            '<div class="error-message">월별 데이터를 불러올 수 없습니다.</div>';
-        document.getElementById('weekdayChart').innerHTML =
-            '<div class="error-message">요일별 데이터를 불러올 수 없습니다.</div>';
-        document.getElementById('eventDistribution').innerHTML =
-            '<div class="error-message">이벤트 분포 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('monthlyChart').innerHTML = '<div class="error-message">월별 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('weekdayChart').innerHTML = '<div class="error-message">요일별 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('eventDistribution').innerHTML = '<div class="error-message">이벤트 분포 데이터를 불러올 수 없습니다.</div>';
     }
 
-    // 3. 지인 분석 데이터 로드
     async function loadRelationData() {
         const token = localStorage.getItem('accessToken');
-
         try {
             const response = await fetch(`${API_BASE_URL}/analysis/relation`, {
-                headers: {
-                    'X-AUTH-TOKEN': token
-                }
+                headers: { 'X-AUTH-TOKEN': token }
             });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch relation data');
-            }
-
+            if (!response.ok) throw new Error('Failed to fetch relation data');
             const data = await response.json();
-
-            // TOP 5 지인 표시
             displayTopRelations(data.topRelations);
-
-            // 지인별 회수율 표시
             displayRelationRecovery(data.relationRecovery);
-
         } catch (error) {
             console.error('Error loading relation:', error);
             displayRelationError();
         }
     }
 
-    // TOP 5 지인 표시
     function displayTopRelations(topRelations) {
         const container = document.getElementById('topRelations');
-
         if (!topRelations || topRelations.length === 0) {
             container.innerHTML = '<div class="no-data">지인 데이터가 없습니다.</div>';
             return;
         }
-
         let html = '';
         topRelations.forEach((rel, index) => {
             html += `
@@ -993,31 +859,20 @@
         container.innerHTML = html;
     }
 
-    // 지인별 회수율 표시
     function displayRelationRecovery(relationRecovery) {
         const container = document.getElementById('relationRecovery');
-
         if (!relationRecovery || relationRecovery.length === 0) {
             container.innerHTML = '<div class="no-data">회수율 데이터가 없습니다.</div>';
             return;
         }
-
         let html = '';
         relationRecovery.forEach(rel => {
-            const badgeClass = rel.rate >= 80 ? 'badge-success' :
-                rel.rate >= 50 ? 'badge-warning' : 'badge-danger';
-
+            const badgeClass = rel.rate >= 80 ? 'badge-success' : rel.rate >= 50 ? 'badge-warning' : 'badge-danger';
             html += `
                 <div class="list-item">
                     <div class="list-item-info">
-                        <div class="list-item-name">
-                            ${rel.name}
-                            <span class="badge ${badgeClass}">${rel.rate}%</span>
-                        </div>
-                        <div class="list-item-detail">
-                            준 금액: ${rel.give.toLocaleString()}원 /
-                            받은 금액: ${rel.take.toLocaleString()}원
-                        </div>
+                        <div class="list-item-name">${rel.name} <span class="badge ${badgeClass}">${rel.rate}%</span></div>
+                        <div class="list-item-detail">준 금액: ${rel.give.toLocaleString()}원 / 받은 금액: ${rel.take.toLocaleString()}원</div>
                     </div>
                 </div>
             `;
@@ -1025,72 +880,95 @@
         container.innerHTML = html;
     }
 
-    // 지인 분석 에러 표시
     function displayRelationError() {
-        document.getElementById('topRelations').innerHTML =
-            '<div class="error-message">TOP 5 지인 데이터를 불러올 수 없습니다.</div>';
-        document.getElementById('relationRecovery').innerHTML =
-            '<div class="error-message">회수율 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('topRelations').innerHTML = '<div class="error-message">TOP 5 지인 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('relationRecovery').innerHTML = '<div class="error-message">회수율 데이터를 불러올 수 없습니다.</div>';
     }
 
-
-    // 4. 회수율 데이터 로드 (TODO)
     async function loadRecoveryData() {
-        displayDemoRecovery();
+        const token = localStorage.getItem('accessToken');
+        try {
+            const response = await fetch(`${API_BASE_URL}/analysis/recovery`, {
+                headers: { 'X-AUTH-TOKEN': token }
+            });
+            if (!response.ok) throw new Error('Failed to fetch recovery data');
+            const data = await response.json();
+            displayRecoveryStats(data);
+            displayUnrecoveredList(data.unrecoveredList);
+            displayLongTermWarning(data.longTermWarning);
+        } catch (error) {
+            console.error('Error loading recovery:', error);
+            displayRecoveryError();
+        }
     }
 
-    function displayDemoRecovery() {
-        document.getElementById('totalRecovery').textContent = '75%';
-        document.getElementById('unrecovered').textContent = '500,000원';
-        document.getElementById('expectedRecovery').textContent = '300,000원';
+    function displayRecoveryStats(data) {
+        document.getElementById('totalRecovery').textContent = data.totalRecovery + '%';
 
-        const unrecoveredList = [
-            { name: '최지은', amount: 200000, date: '2024-06-15', days: 180 },
-            { name: '강민호', amount: 150000, date: '2024-08-20', days: 113 },
-            { name: '윤서아', amount: 100000, date: '2024-10-01', days: 71 },
-            { name: '임동주', amount: 50000, date: '2024-11-10', days: 31 }
-        ];
+        const balanceElement = document.getElementById('recoveryBalance');
+        const balance = data.unrecovered;  // 백엔드에서 unrecovered로 옴
 
+        if (balance >= 0) {
+            // 플러스면 빨간색 (손해 - 못 받은 돈)
+            balanceElement.textContent = '-' + balance.toLocaleString() + '원';
+            balanceElement.style.color = '#d63031';
+        } else {
+            // 마이너스면 초록색 (이득 - 더 받은 돈)
+            balanceElement.textContent = '+' + Math.abs(balance).toLocaleString() + '원';
+            balanceElement.style.color = '#00b894';
+        }
+    }
+
+    function displayUnrecoveredList(unrecoveredList) {
+        const container = document.getElementById('unrecoveredList');
+        if (!unrecoveredList || unrecoveredList.length === 0) {
+            container.innerHTML = '<div class="no-data">미회수 지인이 없습니다.</div>';
+            return;
+        }
         let html = '';
         unrecoveredList.forEach(rel => {
             const badgeClass = rel.days >= 180 ? 'badge-danger' : rel.days >= 90 ? 'badge-warning' : '';
             html += `
                 <div class="list-item">
                     <div class="list-item-info">
-                        <div class="list-item-name">
-                            ${rel.name}
-                            ${badgeClass ? `<span class="badge ${badgeClass}">${rel.days}일 경과</span>` : ''}
-                        </div>
+                        <div class="list-item-name">${rel.name} ${badgeClass ? `<span class="badge ${badgeClass}">${rel.days}일 경과</span>` : ''}</div>
                         <div class="list-item-detail">${rel.date} 지출</div>
                     </div>
                     <div class="list-item-value">${rel.amount.toLocaleString()}원</div>
                 </div>
             `;
         });
-        document.getElementById('unrecoveredList').innerHTML = html;
-
-        const longTermList = unrecoveredList.filter(rel => rel.days >= 180);
-
-        if (longTermList.length === 0) {
-            document.getElementById('longTermWarning').innerHTML = '<div class="no-data">장기 미회수 건이 없습니다.</div>';
-        } else {
-            html = '';
-            longTermList.forEach(rel => {
-                html += `
-                    <div class="list-item">
-                        <div class="list-item-info">
-                            <div class="list-item-name">${rel.name} <span class="badge badge-danger">경고</span></div>
-                            <div class="list-item-detail">${rel.days}일 동안 미회수 (${rel.date})</div>
-                        </div>
-                        <div class="list-item-value">${rel.amount.toLocaleString()}원</div>
-                    </div>
-                `;
-            });
-            document.getElementById('longTermWarning').innerHTML = html;
-        }
+        container.innerHTML = html;
     }
 
-    // 페이지 이동
+    function displayLongTermWarning(longTermList) {
+        const container = document.getElementById('longTermWarning');
+        if (!longTermList || longTermList.length === 0) {
+            container.innerHTML = '<div class="no-data">장기 미회수 건이 없습니다.</div>';
+            return;
+        }
+        let html = '';
+        longTermList.forEach(rel => {
+            html += `
+                <div class="list-item">
+                    <div class="list-item-info">
+                        <div class="list-item-name">${rel.name} <span class="badge badge-danger">경고</span></div>
+                        <div class="list-item-detail">${rel.days}일 동안 미회수 (${rel.date})</div>
+                    </div>
+                    <div class="list-item-value">${rel.amount.toLocaleString()}원</div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function displayRecoveryError() {
+        document.getElementById('totalRecovery').textContent = '오류';
+        document.getElementById('unrecovered').textContent = '오류';
+        document.getElementById('unrecoveredList').innerHTML = '<div class="error-message">미회수 지인 데이터를 불러올 수 없습니다.</div>';
+        document.getElementById('longTermWarning').innerHTML = '<div class="error-message">장기 미회수 데이터를 불러올 수 없습니다.</div>';
+    }
+
     function goToPage(page) {
         window.location.href = page;
     }

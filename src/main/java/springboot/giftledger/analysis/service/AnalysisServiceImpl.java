@@ -2,17 +2,16 @@ package springboot.giftledger.analysis.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import springboot.giftledger.analysis.dto.DashboardDto;
-import springboot.giftledger.analysis.dto.PatternDto;
-import springboot.giftledger.analysis.dto.RecentEventDto;
-import springboot.giftledger.analysis.dto.RelationDto;
+import springboot.giftledger.analysis.dto.*;
 import springboot.giftledger.entity.GiftLog;
 import springboot.giftledger.entity.Member;
 import springboot.giftledger.repository.GiftLogRepository;
 import springboot.giftledger.repository.MemberRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -243,6 +242,78 @@ public class AnalysisServiceImpl implements AnalysisService {
                 })
                 .sorted((a, b) -> Long.compare(b.getGive(), a.getGive()))  // GIVE 금액 내림차순
                 .collect(Collectors.toList());
+    }
+
+
+
+
+
+    @Override
+    public RecoveryDto getRecovery(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+
+        Long memberId = member.getMemberId();
+
+        // 전체 회수율 계산
+        Long totalGive = giftLogRepository.getTotalGiveByMemberId(memberId);
+        Long totalTake = giftLogRepository.getTotalTakeByMemberId(memberId);
+        Double totalRecoveryRate = totalGive > 0
+                ? Math.round((totalTake.doubleValue() / totalGive.doubleValue()) * 1000.0) / 10.0
+                : 0.0;
+
+        // 미회수 금액
+        Long balance = totalGive - totalTake;
+
+        // 미회수 지인 리스트
+        List<Object[]> unrecoveredResults = giftLogRepository.getUnrecoveredRelations(memberId);
+        List<RecoveryDto.UnrecoveredRelation> unrecoveredList = new ArrayList<>();
+        List<RecoveryDto.UnrecoveredRelation> longTermWarning = new ArrayList<>();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Object[] row : unrecoveredResults) {
+            String name = (String) row[0];
+            Long giveAmount = ((Number) row[1]).longValue();
+            Long takeAmount = ((Number) row[2]).longValue();
+            LocalDateTime lastGiveDate = (LocalDateTime) row[3];
+
+            Long unrecoveredRelationAmount = giveAmount - takeAmount;
+
+            // 경과 일수 계산
+            Long days = lastGiveDate != null
+                    ? ChronoUnit.DAYS.between(lastGiveDate, now)
+                    : 0L;
+
+            String dateStr = lastGiveDate != null
+                    ? lastGiveDate.toLocalDate().toString()
+                    : "";
+
+            RecoveryDto.UnrecoveredRelation relation = RecoveryDto.UnrecoveredRelation.builder()
+                    .name(name)
+                    .amount(unrecoveredRelationAmount)
+                    .date(dateStr)
+                    .days(days)
+                    .build();
+
+            unrecoveredList.add(relation);
+
+            // 180일 이상이면 장기 미회수
+            if (days >= 180) {
+                longTermWarning.add(relation);
+            }
+        }
+
+        // 날짜순 정렬 (오래된 순)
+        unrecoveredList.sort((a, b) -> Long.compare(b.getDays(), a.getDays()));
+        longTermWarning.sort((a, b) -> Long.compare(b.getDays(), a.getDays()));
+
+        return RecoveryDto.builder()
+                .totalRecovery(totalRecoveryRate)
+                .unrecovered(balance)
+                .unrecoveredList(unrecoveredList)
+                .longTermWarning(longTermWarning)
+                .build();
     }
 
 }

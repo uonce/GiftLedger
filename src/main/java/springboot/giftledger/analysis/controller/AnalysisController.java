@@ -7,10 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import springboot.giftledger.analysis.dto.DashboardDto;
-import springboot.giftledger.analysis.dto.PatternDto;
-import springboot.giftledger.analysis.dto.RecentEventDto;
-import springboot.giftledger.analysis.dto.RelationDto;
+import springboot.giftledger.analysis.dto.*;
 import springboot.giftledger.analysis.service.AnalysisService;
 
 import java.time.LocalDate;
@@ -59,5 +56,13 @@ public class AnalysisController {
 
         RelationDto relation = analysisService.getRelation(email);
         return ResponseEntity.ok(relation);
+    }
+
+    @GetMapping("/recovery")
+    public ResponseEntity<RecoveryDto> getRecovery(
+            @AuthenticationPrincipal String email) {
+
+        RecoveryDto recovery = analysisService.getRecovery(email);
+        return ResponseEntity.ok(recovery);
     }
 }

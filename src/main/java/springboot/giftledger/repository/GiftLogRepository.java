@@ -147,4 +147,21 @@ public interface GiftLogRepository extends JpaRepository<GiftLog, Long> {
             "AND g.actionType = 'TAKE' " +
             "GROUP BY a.acquaintanceId, a.name")
     List<Object[]> getTakeByAcquaintance(@Param("memberId") Long memberId);
+
+    // ===== 4번 회수율 대시보드용 쿼리 =====
+
+    // 지인별 마지막 GIVE 날짜 및 금액 (미회수 계산용)
+    @Query("SELECT a.name, " +
+            "SUM(CASE WHEN g.actionType = 'GIVE' THEN g.amount ELSE 0 END) as giveAmount, " +
+            "SUM(CASE WHEN g.actionType = 'TAKE' THEN g.amount ELSE 0 END) as takeAmount, " +
+            "MAX(CASE WHEN g.actionType = 'GIVE' THEN e.eventDate ELSE NULL END) as lastGiveDate " +
+            "FROM GiftLog g " +
+            "JOIN g.eventAcquaintance ea " +
+            "JOIN ea.acquaintance a " +
+            "JOIN ea.event e " +
+            "WHERE e.member.memberId = :memberId " +
+            "GROUP BY a.acquaintanceId, a.name " +
+            "HAVING SUM(CASE WHEN g.actionType = 'GIVE' THEN g.amount ELSE 0 END) > " +
+            "SUM(CASE WHEN g.actionType = 'TAKE' THEN g.amount ELSE 0 END)")
+    List<Object[]> getUnrecoveredRelations(@Param("memberId") Long memberId);
 }
