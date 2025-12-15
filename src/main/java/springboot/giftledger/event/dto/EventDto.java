@@ -16,12 +16,19 @@ import springboot.giftledger.enums.EventType;
 public class EventDto {
 	
     private Long eventId;
-    private EventType eventType;
+    private String eventType;
     private String eventName;
     private LocalDateTime eventDate;
     private String location;
     private Boolean isOwner;
 	
+    
+    private Long totalAmount;
+    
+    
+    public void totalAmount(Long totalAmount) {
+    	this.totalAmount = totalAmount;
+    }
 	
 
 }

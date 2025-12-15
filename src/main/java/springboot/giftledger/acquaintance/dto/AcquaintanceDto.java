@@ -24,7 +24,7 @@ public class AcquaintanceDto {
 	
     private Long acquaintanceId;
     private String name;
-    private Relation relation;
+    private String relation;
     private String groupName;
     private String phone;
 

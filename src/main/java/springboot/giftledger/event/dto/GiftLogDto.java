@@ -27,14 +27,14 @@ public class GiftLogDto {
 	
 	private Long giftId;
 	
-	private Long eventId;
 	
 	private long amount;
 	
-	private ActionType actionType;
+	private String actionType;
 	
-	private PayMethod payMethod;
+	private String payMethod;
 	
 	private String memo;
 
+//	private Long eventAcquaintId;
 }

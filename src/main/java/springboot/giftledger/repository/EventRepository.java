@@ -9,6 +9,5 @@ import springboot.giftledger.entity.Event;
 public interface EventRepository extends JpaRepository<Event, Long>{
 	
 	
-	Page<Event> findByAcquaintanceMemberEmail(String email,Pageable pageable);
-
+	Page<Event> findByMember_Email(String email, Pageable pageable);
 }

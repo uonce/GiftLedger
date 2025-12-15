@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class EventAcquaintance {
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long eventAcquaintanceId;

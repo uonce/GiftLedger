@@ -38,7 +38,7 @@ public class AcquaintanceServiceImpl implements AcquaintanceService {
 	            .acquaintanceId(acq.getAcquaintanceId())
 	            .memberId(acq.getMember().getMemberId())
 	            .name(acq.getName())
-	            .relation(acq.getRelation())
+	            .relation(acq.getRelation().getDescription())
 	            .groupName(acq.getGroupName())
 	            .phone(acq.getPhone())
 	            .build();

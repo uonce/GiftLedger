@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import springboot.giftledger.common.dto.ResultDto;
+import springboot.giftledger.event.dto.EventListResponse;
 import springboot.giftledger.event.dto.EventUpdateRequest;
 import springboot.giftledger.event.dto.EventUpdateResponse;
 import springboot.giftledger.event.service.EventService;
@@ -31,12 +32,12 @@ public class EventController {
 	@PutMapping("/{eventId}")
 	public ResponseEntity<ResultDto<EventUpdateResponse>> updateEvent( @PathVariable("eventId") long eventId
 													 , @RequestBody EventUpdateRequest req 
-													 , @AuthenticationPrincipal String principal ){
+													 , @AuthenticationPrincipal String email ){
 		
 		log.info("[PUT /events/{eventId} - Controller] : Start");
-		log.info("[PUT /events/{eventId} - Controller] : args -> eventId : " + eventId + " / userId : " + principal);
+		log.info("[PUT /events/{eventId} - Controller] : args -> eventId : " + eventId + " / userId : " + email);
 		
-		ResultDto eventResultDto = eventService.updateEvent(eventId, req , principal);
+		ResultDto eventResultDto = eventService.updateEvent(eventId, req , email);
 		
 		
         if ("success".equals(eventResultDto.getResult())) {
@@ -44,7 +45,7 @@ public class EventController {
         	return ResponseEntity.ok(eventResultDto);
         }
         else {
-        	log.info("[PUT /events/{eventId} - Controller] : End");
+        	log.info("[PUT /events/{eventId} - Controller] : Error");
             return ResponseEntity.status(401).body(eventResultDto);
         }
         
@@ -52,20 +53,20 @@ public class EventController {
 	
 	
 	@GetMapping()
-	public ResponseEntity<ResultDto<Page<EventUpdateResponse>>> eventList(@AuthenticationPrincipal String principal,
+	public ResponseEntity<ResultDto<Page<EventListResponse>>> eventList(@AuthenticationPrincipal String principal,
 																		  @PageableDefault(size = 5, sort = "eventDate", direction = Sort.Direction.DESC) Pageable pageable){
 		
 		log.info("[GET /events - Controller] : Start");
 		log.info("[PUT /events/{eventId} - Controller] : args -> userName : " + principal);
 		
-		ResultDto<Page<EventUpdateResponse>> eventResultDto = eventService.eventList(principal, pageable);
+		ResultDto<Page<EventListResponse>> eventResultDto = eventService.eventList(principal, pageable);
 		
         if ("success".equals(eventResultDto.getResult())) {
             log.info("[PUT /events/{eventId} - Controller] : End");
         	return ResponseEntity.ok(eventResultDto);
         }
         else {
-        	log.info("[PUT /events/{eventId} - Controller] : End");
+        	log.info("[PUT /events/{eventId} - Controller] : Error");
             return ResponseEntity.status(401).body(eventResultDto);
         }
         
