@@ -5,7 +5,7 @@ function goToSearch() {
 
 // 분석 및 통계
 function goToAnalytics() {
-    window.location.href = 'analytics.html';
+    window.location.href = 'analysis.html';
 }
 
 // 이벤트 등록
