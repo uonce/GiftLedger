@@ -11,6 +11,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Configuration
 @RequiredArgsConstructor
@@ -40,12 +45,15 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/login.html",
                                 "/register.html",
+                                "/analysis.html",
                                 "/auth/**",
                                 "/register",
                                 "/users",
                                 "/auth/login",
                                 "/logout",
-                                "/statistics/**"
+                                "/statistics/**",
+                                "/assets/**",
+                                "favicon.ico"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -54,4 +62,6 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class))
                 .build();
     }
+
+
 }
