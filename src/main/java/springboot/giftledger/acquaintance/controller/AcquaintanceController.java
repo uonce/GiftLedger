@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import springboot.giftledger.acquaintance.dto.AcquaintanceDto;
@@ -25,7 +26,13 @@ public class AcquaintanceController {
 
 	private final AcquaintanceService acquaintanceService;
 	
-	
+	@Operation(summary = "지인 목록 조회" 
+			 , description = """
+			 			사용자가 등록한 지인 목록을 출력합니다
+			 			- 키워드 미 요청 시 전체 중 5명
+			 			- 키워드 요청 시 이름에 키워드가 포함되는 리스트 중 5명
+			 			- 조회 된 지인이 없을 경우 400 
+			 		""")
 	@GetMapping
 	public ResponseEntity<ResultDto<Page<AcquaintanceDto>>>  acquaintanceList(@AuthenticationPrincipal String email,
 																			  @RequestParam(name = "keyword", required = false) String keyword,
@@ -41,7 +48,7 @@ public class AcquaintanceController {
         }
         else {
         	log.info("[PUT /acquaintance - Controller] : ERROR");
-            return ResponseEntity.status(401).body(acqResultDto);
+            return ResponseEntity.status(400).body(acqResultDto);
         }
 		
 	}

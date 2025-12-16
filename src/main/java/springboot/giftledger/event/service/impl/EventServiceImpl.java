@@ -66,6 +66,10 @@ public class EventServiceImpl implements EventService{
 				() -> new IllegalArgumentException("잘못된 요청 입니다.")
 			);
 		
+		if(!eventAcq.getEvent().getMember().getEmail().equals(email)) {
+			throw new AccessDeniedException("조회 권한이 없습니다");
+		}
+		
 		EventUpdateResponse response = EventUpdateResponse.builder()
 														  .event(toEventDto(eventAcq.getEvent()))
 														  .acquaintance(toAcquaintanceDto(eventAcq.getAcquaintance()))
