@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import springboot.giftledger.acquaintance.dto.AcquaintanceDto;
 import springboot.giftledger.acquaintance.service.AcquaintanceService;
 import springboot.giftledger.common.dto.ResultDto;
-import springboot.giftledger.event.dto.EventUpdateResponse;
 
 @RestController
 @RequestMapping("/acquaintance")
@@ -26,12 +26,13 @@ public class AcquaintanceController {
 	private final AcquaintanceService acquaintanceService;
 	
 	
-	@GetMapping()
+	@GetMapping
 	public ResponseEntity<ResultDto<Page<AcquaintanceDto>>>  acquaintanceList(@AuthenticationPrincipal String email,
+																			  @RequestParam(name = "keyword", required = false) String keyword,
 																			  @PageableDefault(size = 5, sort = "acquaintanceId", direction = Sort.Direction.DESC) Pageable pageable) {
 		
 		log.info("[PUT /acquaintance - Controller] : Start");
-		ResultDto<Page<AcquaintanceDto>> acqResultDto = acquaintanceService.acquaintanceList(email, pageable);
+		ResultDto<Page<AcquaintanceDto>> acqResultDto = acquaintanceService.acquaintanceList(email, keyword, pageable);
 		
 		
         if ("success".equals(acqResultDto.getResult())) {
