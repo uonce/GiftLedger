@@ -1,5 +1,7 @@
 package springboot.giftledger.event.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,10 +33,11 @@ import springboot.giftledger.event.service.EventService;
 @RequestMapping("/events")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name="이벤트 관리 기능 REST API", description = "Event의 등록, 수정, 삭제, 조회, 상세조회 기능을 제공합니다.")
 public class EventController {
 	
 	private final EventService eventService;
-	
+
 	@PutMapping("/{eventId}")
 	public ResponseEntity<ResultDto<EventUpdateResponse>> updateEvent( @PathVariable("eventId") long eventId
 													 , @RequestBody EventUpdateRequest req 
@@ -56,8 +59,7 @@ public class EventController {
         }
         
 	}
-	
-	
+
 	@GetMapping()
 	public ResponseEntity<ResultDto<Page<EventListResponse>>> eventList(@AuthenticationPrincipal String principal,
 																		  @PageableDefault(size = 5, sort = "eventDate", direction = Sort.Direction.DESC) Pageable pageable){
@@ -77,8 +79,8 @@ public class EventController {
         }
         
 	}
-	
 
+    @Operation(summary = "이벤트 등록", description = "이벤트를 등록합니다.")
     @PostMapping("")
     public ResponseEntity<EventResultDto> insertEvent(
             @AuthenticationPrincipal String email,
@@ -104,6 +106,7 @@ public class EventController {
 
     }
 
+    @Operation(summary = "이벤트 상세", description = "선택된 이벤트와 관련된 모든 목록을 조회합니다.")
     @GetMapping("/{eventId}")
     public ResponseEntity<EventDetailsResultDto> detailsEvent(
             @AuthenticationPrincipal String email,
@@ -129,7 +132,7 @@ public class EventController {
         }
 
     }
-
+    @Operation(summary = "이벤트 삭제", description = "선택된 이벤트(내역)를 삭제합니다.")
     @DeleteMapping("/{giftId}")
     public ResponseEntity<EventResultDto> deleteEvent(
             @AuthenticationPrincipal String email,
@@ -155,7 +158,7 @@ public class EventController {
         }
 
     }
-
+    @Operation(summary = "이벤트 내역 추가", description = "선택된 이벤트에 대한 내역을 추가합니다.")
     @PostMapping("/{eventId}")
     public ResponseEntity<EventDetailsResultDto> insertEventOnDetails(
             @AuthenticationPrincipal String email,
