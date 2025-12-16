@@ -90,9 +90,6 @@ public class EventController {
             @AuthenticationPrincipal String email,
             @RequestBody EventRequestDto eventRequestDto) {
 
-        log.info("[EventController - insertEvent] 사용자 정보 email: {}", email);
-        log.info("[EventController - insertEvent] 이벤트 등록 요청 eventRequestDto: {}", eventRequestDto);
-
         try {
             EventResultDto eventResultDto = eventService.insertEvent(email, eventRequestDto);
 
@@ -116,13 +113,9 @@ public class EventController {
             @AuthenticationPrincipal String email,
             @PathVariable("eventId") Long eventId) {
 
-        log.info("[EventController - detailsEvent] 사용자 정보 email: {}", email);
-        log.info("[EventController - detailsEvent] eventId: {}", eventId);
-
         try {
             EventDetailsResultDto eventDetailsResultDto = eventService.detailsEvent(email, eventId);
 
-            log.info("[EventController - detailsEvent] eventDetailsResultDto: {}", eventDetailsResultDto);
             if ("success".equals(eventDetailsResultDto.getResult())) {
                 return ResponseEntity.ok(eventDetailsResultDto);
             } else {
@@ -142,13 +135,9 @@ public class EventController {
             @AuthenticationPrincipal String email,
             @PathVariable("giftId") Long giftId) {
 
-        log.info("[EventController - deleteEvent] 사용자 정보 email: {}", email);
-        log.info("[EventController - deleteEvent] giftId: {}", giftId);
-
         try {
             EventResultDto eventResultDto = eventService.deleteEvent(email, giftId);
 
-            log.info("[EventController - deleteEvent] eventResultDto: {}", eventResultDto);
             if ("success".equals(eventResultDto.getResult())) {
                 return ResponseEntity.ok(eventResultDto);
             } else {
@@ -169,13 +158,9 @@ public class EventController {
             @PathVariable("eventId") Long eventId,
             @RequestBody EventRequestDto eventRequestDto
     ){
-        log.info("[EventController - insertEventOnDetails] 사용자 정보 email: {}", email);
-        log.info("[EventController - insertEventOnDetails] eventId: {}", eventId);
-
         try {
             EventDetailsResultDto eventDetailsResultDto = eventService.insertEventOnDetails(email, eventId, eventRequestDto);
 
-            log.info("[EventController - insertEventOnDetails] eventDetailsResultDto: {}", eventDetailsResultDto);
             if ("success".equals(eventDetailsResultDto.getResult())) {
                 return ResponseEntity.ok(eventDetailsResultDto);
             } else {
