@@ -64,7 +64,7 @@ public class AcquaintanceControllerAcquaintanceListTest {
 
 	    
 	    @Test
-	    @DisplayName("GET /acquaintance 실패 - status 401")
+	    @DisplayName("GET /acquaintance 실패 - status 400")
 	    @WithMockUser(username = "test@test.com", roles = "USER")
 	    void acquaintanceList_fail() throws Exception {
 
@@ -77,7 +77,7 @@ public class AcquaintanceControllerAcquaintanceListTest {
 	        mockMvc.perform(get("/acquaintance")
 	                        .param("keyword", "검색어")
 	                        .contentType(MediaType.APPLICATION_JSON))
-	                .andExpect(status().isUnauthorized())
+	                .andExpect(status().isBadRequest())
 	                .andExpect(jsonPath("$.result").value("Error"));
 	    }
 	
