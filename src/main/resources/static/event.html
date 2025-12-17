@@ -232,13 +232,50 @@
 
     function renderPagination(totalPages, current) {
         const container = document.getElementById("paginationContainer");
-        if (totalPages <= 1) { container.innerHTML = ""; return; }
-
-        let html = `<button class="page-btn" onclick="loadEvents(${current-1})" ${current===0?'disabled':''}>이전</button>`;
-        for (let i=0;i<totalPages;i++) {
-            html += `<button class="page-btn ${i===current?'active':''}" onclick="loadEvents(${i})">${i+1}</button>`;
+        if (totalPages <= 1) {
+            container.innerHTML = "";
+            return;
         }
-        html += `<button class="page-btn" onclick="loadEvents(${current+1})" ${current===totalPages-1?'disabled':''}>다음</button>`;
+
+        const blockSize = 5; // 한 번에 보여줄 페이지 버튼 개수
+        const currentBlock = Math.floor(current / blockSize);
+
+        const startPage = currentBlock * blockSize;
+        const endPage = Math.min(startPage + blockSize, totalPages);
+
+        let html = "";
+
+        // 이전 버튼 (페이지 기준)
+        html += `
+        <button
+            class="page-btn"
+            onclick="loadEvents(${current - 1})"
+            ${current === 0 ? "disabled" : ""}>
+            이전
+        </button>
+    `;
+
+        // 🔥 페이지 버튼 (5개씩)
+        for (let i = startPage; i < endPage; i++) {
+            html += `
+            <button
+                class="page-btn ${i === current ? "active" : ""}"
+                onclick="loadEvents(${i})">
+                ${i + 1}
+            </button>
+        `;
+        }
+
+        // 다음 버튼 (페이지 기준)
+        html += `
+        <button
+            class="page-btn"
+            onclick="loadEvents(${current + 1})"
+            ${current === totalPages - 1 ? "disabled" : ""}>
+            다음
+        </button>
+    `;
+
         container.innerHTML = html;
     }
 
