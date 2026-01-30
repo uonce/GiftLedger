@@ -25,7 +25,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build without Tests
-        # 여기서 확실하게 -x test를 넣어 빌드만 진행합니다.
+        # 여기서 확실하게 -x test를 넣어 빌드만 진행합니다
         run: ./gradlew clean bootJar -x test
 
       - name: Save EC2 SSH key
