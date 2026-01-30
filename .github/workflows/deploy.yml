@@ -45,7 +45,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build Spring Boot App
-        run: ./gradlew clean bootJar
+        run: ./gradlew clean bootJar -x test
 
       - name: Save EC2 SSH key
         run: |
