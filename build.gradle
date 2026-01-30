@@ -10,6 +10,10 @@ group = 'SpringBoot'
 version = '0.0.1-SNAPSHOT'
 description = 'GiftLedger'
 
+bootJar {
+    archiveFileName = 'giftledger.jar'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
