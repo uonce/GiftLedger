@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  deploy: # 잡을 하나로 통합했습니다.
-    name: Build and Deploy
+  deploy:
+    name: Build and Deploy to EC2
     runs-on: ubuntu-latest
 
     steps:
@@ -18,14 +18,14 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'oracle'
+          distribution: 'oracle' # 사용 중인 Oracle OpenJDK 설정
           cache: 'gradle'
 
-      - name: Grant execute permission
+      - name: Grant execute permission for Gradle
         run: chmod +x ./gradlew
 
-      - name: Build without Tests
-        # 여기서 확실하게 -x test를 넣어 빌드만 진행합니다
+      - name: Build with Gradle (Skip Tests)
+        # 테스트 데이터 부재로 인한 실패를 방지하기 위해 -x test 사용
         run: ./gradlew clean bootJar -x test
 
       - name: Save EC2 SSH key
@@ -33,12 +33,31 @@ jobs:
           echo "${{ secrets.EC2_KEY }}" > key.pem
           chmod 400 key.pem
 
-      - name: Ensure remote directory
+      - name: Ensure remote app directory exists
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p ${{ secrets.EC2_APP_DIR }}"
 
-      - name: Deploy to EC2
+      - name: Deploy JAR to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i key.pem \
-            build/libs/GiftLedger-*.jar \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/${{ secrets.APP_NAME }}
+            build/libs/giftledger.jar \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:${{ secrets.EC2_APP_DIR }}/giftledger.jar
+
+      - name: Execute Server on EC2
+        # 기존 프로세스를 종료하고 새 JAR를 백그라운드에서 실행합니다.
+        run: |
+          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 8080 포트를 사용하는 기존 프로세스 종료
+            CURRENT_PID=$(lsof -t -i:8080)
+            if [ -z "$CURRENT_PID" ]; then
+              echo "> 현재 구동 중인 애플리케이션이 없으므로 종료하지 않습니다."
+            else
+              echo "> kill -15 $CURRENT_PID"
+              kill -15 $CURRENT_PID
+              sleep 5
+            fi
+
+            # 새 버전 실행
+            echo "> 새 애플리케이션 배포"
+            nohup java -jar ${{ secrets.EC2_APP_DIR }}/giftledger.jar > ${{ secrets.EC2_APP_DIR }}/nohup.out 2>&1 &
+          EOF
