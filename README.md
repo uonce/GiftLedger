@@ -1,12 +1,22 @@
-# 품앗이 : 경조사비 관리 시스템
+<div align="center">
+  <h1>품앗이</h1>
+  <p><strong>경조사비 관리 시스템</strong></p>
+</div>
 
+<div align="center">
 "지난 결혼식에 얼마 냈더라?" — 경조사비 관리의 어려움을 해결하는 웹 시스템입니다. <br>
 Spring Boot + JPA로 RESTful API를 구축하고, JWT 인증, 복잡한 엔티티 관계 설계, 
 통계 쿼리 최적화 등 실무 기술을 적용했습니다.
 
-<br>
+<br><br>
 
-**팀 구성**: 3인 (김우식, 송유원, 현홍석) · 유레카 백엔드 비대면 미니 프로젝트
+**팀 구성** <br>
+3인 (김우식, 송유원, 현홍석) <br>
+유레카 백엔드 비대면 미니 프로젝트 <br>
+
+</div>
+
+<br><br>
 
 ## 기술 스택
 
@@ -15,6 +25,8 @@ Spring Boot + JPA로 RESTful API를 구축하고, JWT 인증, 복잡한 엔티�
 ![JPA](https://img.shields.io/badge/JPA-59666C?style=for-the-badge&logo=hibernate&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 ![Swagger](https://img.shields.io/badge/SWAGGER-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+
+<br>
 
 ## 핵심 기능
 
@@ -28,6 +40,8 @@ Spring Boot + JPA로 RESTful API를 구축하고, JWT 인증, 복잡한 엔티�
 - 지인 분석: Top 5 지인 목록, 지인별 회수율
 - 회수율: 전체 회수율, 미회수 지인 목록 및 장기 미회수 경고
 
+<br>
+
 ## ERD
 <img width="700" src="https://github.com/user-attachments/assets/39d7b989-942d-4190-9759-01485ae9dbf2" />
 
@@ -38,6 +52,8 @@ Spring Boot + JPA로 RESTful API를 구축하고, JWT 인증, 복잡한 엔티�
 | `Event_Acquaintance` | 경조사와 지인의 N:M 관계를 위한 중간 테이블 |
 | `Acquaintance` (지인) | 지인 정보 관리, Member가 생성(1:N), relation으로 관계 유형 분류 |
 | `Gift_Log` (경조사비) | 경조사비 기록 관리, 특정 Event_Acquaintance에 종속(1:N) |
+
+<br>
 
 ## API 설계
 ![Swagger](https://github.com/user-attachments/assets/a0897962-ff54-4de5-9207-1092c0b0f6db)
